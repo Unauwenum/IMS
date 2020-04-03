@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+
+        influxdb-development:               
+                container_name: my_influxdb
+                image: influxdb
+                environment:
+                        INFLUXDB_DB: aktiendb
+                        INFLUXDB_ADMIN_USER: adminus187
+                        INFLUXDB_ADMIN_PASSWORD: adminus187
+                restart: always
+                ports:
+                    - "8086:8086"
+                volumes:
+                        - influxdb-volume:/var/lib/influxdb
+volumes:
+        influxdb-volume:
+                external: true
+

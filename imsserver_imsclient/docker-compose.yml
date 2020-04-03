@@ -1,0 +1,43 @@
+version: '3'
+services:
+  imsserver:
+    build: .
+    container_name: imsservercontainer
+    #volumes:
+    #  - ./:/usr/src/app
+    command: node imsserver.js
+    ports:
+      - "8080:8080"
+  imsclient:
+    build: .
+    container_name: imsclientcontainer
+    #volumes:
+    #  - ./:/usr/src/app
+    environment:
+      - SERVER=server
+    command: node imsclient.js
+    links:
+      - imsserver
+    depends_on:
+      - imsserver
+
+  mysql-development:
+        image: mysql:8.0.17
+        environment:
+                MYSQL_ROOT_PASSWORD: securepassword
+                MYSQL_DATABASE: imsdb
+        ports:
+            - "3308:3308"
+  phpmyadmin:
+       image: phpmyadmin/phpmyadmin
+       container_name: phpmyadminsuite
+       volumes:
+               - /sessions
+       ports:
+               - 8090:80
+       environment:
+               - PMA_ARBITRARY=1
+       depends_on:
+               - mysql-development
+
+

@@ -1,0 +1,27 @@
+version: '3'
+services:
+    datadelivery:
+        build: .
+        
+        command: node datadelivery.js
+        ports:
+            - "8090:8090"
+
+    influxdb-development:
+        container_name: my_influxdb
+        image: influxdb
+        environment:
+                INFLUXDB_ADMIN_USER: secureuser
+                INFLUXDB_ADMIN_PASSWORD: securepassword
+        restart: always
+        ports:
+            - "8086:8086"
+        volumes:
+                - influxdb-volume:/var/lib/influxdb
+volumes:
+    influxdb-volume:
+            external: true
+   
+    
+            
+
