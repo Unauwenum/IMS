@@ -16,7 +16,7 @@ app.use(express.json());
 // Entrypoint - call it with: http://localhost:8080/
 app.get('/', (req, res) => {
     console.log("Got a request and serving 'Hello World'");
-    res.send('Hello World');
+    res.send('<!DOCTYPE html> <html lang="en"> <head> <meta charset="utf-8"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <meta name="viewport" content="width=device-width, initial-scale=1"> <title>ISM</title> <script type="text/javascript" src="IMS_Home.js"></script> <link href="index.css" rel="stylesheet"> </head> <body onload="loadDynamicContent()"> <div id="header"> <p class="headerElements">Depowert:</p> <p class="headerElements" id="pDepowertHeader">--</p> <p class="headerElements">Bargeld:</p> <p class="headerElements" id="pBargeldHeader">--</p> <p class="headerElements" >Veränderung (letzten 24h):</p> <p class="headerElements" id="pVeränderungHeader">--</p> <p class="headerElements" >Angemeldet als:</p> <p class="headerElements" id="pAngemeldetHeader">--</p> <input type="button" class="headerElements" id="btnAnmelden" value="Anmelden"> </div> <div id="middle"> <div id="uebersicht"> <h3>Aktuelle Kurse:</h3> <table id="tblKurse" class="tblKurse"> <tr> <th>Aktie</th> <th>Preis</th> <th>Veränderung</th> <th></th> </tr> <!-- Hier wird dynamisch Inhalt eingefügt --> </table> </div> <div id="main"> <h3>Deine Aktien:</h3> <table id="tblAktienUebersichtHome" class="tblAktienUebersicht"> <tr> <th>Aktie</th> <th>Anzahl</th> <th>Wert</th> <th>Veränderung</th> <th></th> </tr> <!-- Hier wird dynamisch Inhalt eingefügt --> </table> </div> </div> </body> </html>');
 });
 
 // Another GET Path - call it with: http://localhost:8080/special_path

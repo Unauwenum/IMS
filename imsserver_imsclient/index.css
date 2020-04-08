@@ -1,0 +1,75 @@
+body{
+    align-items: center;
+    margin: 0px;
+}
+
+#header{
+    background: lightskyblue;
+    width: 100%; 
+    position: fixed;
+    left: 0;
+    top: 0;
+    border-bottom:2px solid lightslategray;
+    align-items: center;
+    min-width: 40em;
+}
+.headerElements{
+    float: left;
+    align-self: center;
+    margin-left: 3em;
+    margin-right: 1em;
+}
+#pBargeldHeader, #pDepowertHeader, #pVeränderungHeader, #pAngemeldetHeader, #btnAnmelden{
+    margin-left: 0em;
+}
+
+#btnAnmelden{
+    margin-top: 1.4em;
+}
+
+#middle{
+    margin-top: 3.28em;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+#uebersicht{
+    float: left;
+    margin-right: 2em;
+    margin-left: 0em;
+    padding-left: 1em;
+    padding-right: 1.6em;
+    border-right: 2px solid lightslategray;
+    height: 100%;
+    width: 18em;
+    background-color: lightgrey;
+}
+
+#main{
+    float: left;
+    width: 30em;
+    height: 100%;
+}
+
+table, th, td{
+    border: 1pt solid black;
+}
+
+th{
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+td{
+    align-self: center;
+    align-content: center;
+}
+
+table{
+    border-collapse: collapse;
+}
+
+th{
+    height: 1.4em;
+}
