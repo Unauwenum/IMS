@@ -2,7 +2,8 @@ version: '3'
 services:
     datadelivery:
         build: .
-        
+        depends_on:
+            - influxdb-development
         command: node datadelivery.js
         ports:
             - "8090:8090"
@@ -18,6 +19,27 @@ services:
             - "8086:8086"
         volumes:
                 - influxdb-volume:/var/lib/influxdb
+    mysql-development:
+        container_name: my_mysqldb
+        image: mysql:5.7
+        environment:
+                MYSQL_USER: secureuser
+                MYSQL_PASSWORD: securepassword
+                MYSQL_ROOT_PASSWORD: securepassword
+                MYSQL_DATABASE: imsdb
+        ports:
+            - "3308:3306"  
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadminsuite
+        volumes:
+                - /sessions
+        ports:
+                - 8091:80
+        environment:
+                - PMA_ARBITRARY=1
+        depends_on:
+                - mysql-development        
 volumes:
     influxdb-volume:
             external: true
