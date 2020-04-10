@@ -16,12 +16,13 @@ app.use(express.json());
 // Entrypoint - call it with: http://localhost:8080/
 app.get('/', (req, res) => {
     console.log("Got a request on Homepage");
-    res.redirect('/Home')
+    res.redirect('/Home');
 });
 
 // Another GET Path - call it with: http://localhost:8080/special_path
-app.get('/special_path', (req, res) => {
-    res.send('This is another path');
+app.get('/Stock', (req, res) => {
+    console.log("Got a request on Stock XX");
+    //res.redirect('/Stock')
 });
 
 // Another GET Path that shows the actual Request (req) Headers - call it with: http://localhost:8080/request_info
@@ -48,7 +49,8 @@ app.post('/client_post', (req, res) => {
 
 // All requests to /static/... will be reidrected to static files in the folder "public"
 // call it with: http://localhost:8080/Home
-app.use('/Home', express.static('public'))
+app.use('/Home', express.static('home'));
+app.use('/Stock', express.static('stock'))
 
 // Start the actual server
 app.listen(PORT, HOST);
