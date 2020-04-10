@@ -19,10 +19,10 @@ app.get('/', (req, res) => {
     res.redirect('/Home');
 });
 
-// Another GET Path - call it with: http://localhost:8080/special_path
-app.get('/Stock', (req, res) => {
+// Another GET Path - call it with: http://localhost:8080/s
+app.get('/s', (req, res) => {
     console.log("Got a request on Stock XX");
-    //res.redirect('/Stock')
+    res.redirect('/Stock');
 });
 
 // Another GET Path that shows the actual Request (req) Headers - call it with: http://localhost:8080/request_info
@@ -50,7 +50,7 @@ app.post('/client_post', (req, res) => {
 // All requests to /static/... will be reidrected to static files in the folder "public"
 // call it with: http://localhost:8080/Home
 app.use('/Home', express.static('home'));
-app.use('/Stock', express.static('stock'))
+app.use('/Stock', express.static('stock'));
 
 // Start the actual server
 app.listen(PORT, HOST);
