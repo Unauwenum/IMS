@@ -28,3 +28,4 @@ postRandomNumberToServer()
 var interval = setInterval(function () {
     postRandomNumberToServer()
 }, 3000);
+

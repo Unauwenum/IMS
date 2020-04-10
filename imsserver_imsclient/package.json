@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "Node.js on Docker",
   "author": "First Last <first.last@example.com>",
-  "main": "server.js",
+  "main": "imsserver.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node imsserver.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "express": "^4.16.1"
+    "express": "^4.16.1",
+    "influx": "^5.5.1",
+    "mariadb": "^2.3.1"
   }
 }

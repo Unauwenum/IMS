@@ -4,6 +4,10 @@ services:
         build: .
         depends_on:
             - influxdb-development
+            - mysql-development
+        links:
+                - "influxdb-development"
+                - "mysql-development"
         command: node datadelivery.js
         ports:
             - "8090:8090"
@@ -20,8 +24,8 @@ services:
         volumes:
                 - influxdb-volume:/var/lib/influxdb
     mysql-development:
-        container_name: my_mysqldb
-        image: mysql:5.7
+        container_name: mariadb
+        image: mariadb
         environment:
                 MYSQL_USER: secureuser
                 MYSQL_PASSWORD: securepassword
@@ -29,6 +33,8 @@ services:
                 MYSQL_DATABASE: imsdb
         ports:
             - "3308:3306"  
+        volumes:
+                - mysqldb-volume:/var/lib/mysql
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         container_name: phpmyadminsuite
@@ -42,7 +48,7 @@ services:
                 - mysql-development        
 volumes:
     influxdb-volume:
-            external: true
+    mysqldb-volume:
    
     
             

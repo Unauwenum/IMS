@@ -1,4 +1,4 @@
-'use strict';
+setTimeout( function () {'use strict';
 
 const express = require('express');
 
@@ -31,36 +31,33 @@ function sleep(milliseconds) { //Funktion um Javascript auszusetzen
     f = Date.now();
   } while (f - i < milliseconds);
 }
-sleep(20000);
+
 //Verbindung mit Influxdb wird hergestellt
 const InfluxDB = require('influx');
 const influxdbold = new InfluxDB.InfluxDB({
-  host  : "localhost",
+  host  : "influxdb-development",
   //port  : "8086",
  
 })
-//Verbindung mit MySql wird hergestellt
-const MySql = require('mysql');
-var mysqlcon = MySql.createConnection({
-  host: "localhost",
+//Verbindung mit MariaDB wird hergestellt
+const mariadb = require('mariadb');
+var mariadbcon = mariadb.createPool({
+  host: "mysql-development",
   user: "secureuser",
   password: "securepassword",
-  port: 3308,
+  port: 3306,
   database: "imsdb"
 })
 //connection wirdaufgebaut
-mysqlcon.connect(function(err)  {
-  if(err) throw err;
+mariadbcon.getConnection().then(conn =>  {
   console.log("Connected!");
   //wenn die Tabelle noch nicht vorhanden ist, wird sie erstellt
-  mysqlcon.query("SHOW TABLES", function(err, result) {
-    if (err) throw err;
+  conn.query("SHOW TABLES").then(rows =>  {
     //boolean tabelle vorhanden?
     var bool = false;
-    console.log(result);
-    console.log(result[0].Tables_in_imsdb);
-    for (var i = 0; i < result.length; i++) {
-      var helpstr = result[i].Tables_in_imsdb
+
+    for (var i = 0; i < rows.length; i++) {
+      var helpstr = rows[i].Tables_in_imsdb
       if (helpstr == 'Sharesymbols') {
         bool = true;
         
@@ -68,12 +65,12 @@ mysqlcon.connect(function(err)  {
     }
     if(bool == false) {
       var sql = " CREATE TABLE `imsdb`.`Sharesymbols` ( `symbol` VARCHAR(10) NOT NULL , `share` VARCHAR(30) NOT NULL , PRIMARY KEY (`symbol`)) ENGINE = InnoDB; ";
-      mysqlcon.query(sql, function (err, result) {
-        if (err) throw err;
+      conn.query(sql).then(rows => {
+        
         console.log("Table created");
       });
       var sql = " INSERT INTO `Sharesymbols` (`symbol`,`share`) VALUES ('IBM', 'IBM'), ('SAP', 'SAP')";
-      mysqlcon.query(sql, function (err, result) {
+      conn.query(sql).then(rows => {
         if (err) throw err;
         console.log("Inserted values");
       });
@@ -87,7 +84,6 @@ mysqlcon.connect(function(err)  {
 
 
 influxdbold.getDatabaseNames().then(function(value) {
-  console.log(value[0]);
   //wenn das erste mal gestartet muss Datenbank eingerichtet werden
   if(!value.includes('aktiendb')) {
     influxdb.createDatabase('aktiendb');
@@ -96,7 +92,7 @@ influxdbold.getDatabaseNames().then(function(value) {
 });
 
 const influxdb = new InfluxDB.InfluxDB({
-  host  : "localhost",
+  host  : "influxdb-development",
   //port  : "8086",
  database : "aktiendb"
 })
@@ -161,11 +157,13 @@ var iarray = []; //es müssen die i Werte der forSchleife abgespeichert werden, 
 var influxline = 'LastHundredShares, timezone='+timezone+',symbol='+symbol+' open='+open+',high='+high+',low='+low+',close='+close+',volume='+volume+' '+timestamp;
 //laden eines JSON-> enthält Werte der letzten hundert Tage im JSON Format wird in die influxdb geladen
 //die Aktien die geladen werden sollen werden aus der Mysqltabelle geladen
-/*
-mysqlcon.query("SELECT symbol FROM Sharesymbols", function(err, result) {
-  if (err) throw err;
-  for( var i = 0; i < result.length; i++){
-    share_symbol = result[i].symbol;
+
+
+setTimeout(function() {
+  mariadbcon.getConnection().then(conn => {
+    conn.query("SELECT symbol FROM Sharesymbols").then(rows => {
+    for( var i = 0; i < rows.length; i++){
+      share_symbol = rows[i].symbol;
     let API_CALL_DAILY = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${share_symbol}&apikey=${API_KEY}`;
     loadJSON(API_CALL_DAILY, function(text){
   
@@ -258,21 +256,22 @@ mysqlcon.query("SELECT symbol FROM Sharesymbols", function(err, result) {
     }); //end loadJason
 
 
+  }
+})//end rows
 
+})//end conn
 
-  } //end forsschleife distinct shares
-})//end sqlabfrage
-*/
+}, 5000);//end setTimoutfunction
 
 //laden der Echtzeitdaten, (1min Intraday intervall)
 /*
 API_Call ändern in Api_call intraday
 */
-
-mysqlcon.query("SELECT symbol FROM Sharesymbols", function(err, result) {
-  if (err) throw err;
-  for( var i = 0; i < result.length; i++){
-    share_symbol = result[i].symbol;
+setTimeout(function() {
+mariadbcon.getConnection().then(conn => {
+  conn.query("SELECT symbol FROM Sharesymbols").then(rows => {
+  for( var i = 0; i < rows.length; i++){
+    share_symbol = rows[i].symbol;
     let API_CALL_INTRADAY = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${share_symbol}&interval=1min&apikey=${API_KEY}`;
 
 //Wichtig, die Börsen an der die abgefragten Aktien gehandelt werden machen um 9:35 Amerikanischer Zeit auf und schließen 16:00 Amerikanischer Zeit, deswegen überpfügun
@@ -379,4 +378,11 @@ mysqlcon.query("SELECT symbol FROM Sharesymbols", function(err, result) {
       }) //end loadJason
 
  
-    }})
+    }
+  })//end rows
+
+})//end conn
+
+}, 5000);//end setTimoutfunction
+
+}, 20000);
