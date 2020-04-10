@@ -53,3 +53,38 @@ app.use('/Home', express.static('public'))
 // Start the actual server
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
+
+/**
+ * Maxim Part
+ */
+
+//Aufbauen verbindung Influxdb
+const InfluxDB = require('influx');
+const influxdb = new InfluxDB.InfluxDB({
+    host  : "localhost",
+    //port  : "8086",
+   database : "aktiendb"
+  })
+
+//Aufbauen verbindung imsdb
+
+const mariadb = require('mariadb');
+var mariadbcon = mariadb.createPool({
+  host: "localhost",
+  user: "secureuser",
+  password: "securepassword",
+  port: 3308,
+  database: "imsdb"
+})
+
+mariadbcon.getConnection().then(conn =>  {
+    console.log("Connected!"); });
+
+influxdb.getDatabaseNames().then(function(value) {
+    console.log('Connected Influx')
+    //wenn das erste mal gestartet muss Datenbank eingerichtet werden
+    if(!value.includes('aktiendb')) {
+        influxdb.createDatabase('aktiendb');
+        console.log('Es wurde eine neue Influxdatenbank eingerichtet');
+        }
+      });

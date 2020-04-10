@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "Node.js on Docker",
   "author": "Maxim Bauer",
-  "main": "server.js",
+  "main": "datadelivery.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node datadelivery.js"
   },
   "dependencies": {
     "express": "^4.16.1",
     "influx": "^5.5.1",
     "influxdb-nodejs": "^3.1.0",
+    "mariadb": "^2.3.1",
     "mysql": "^2.18.1",
     "xmlhttprequest": "^1.8.0"
   }
