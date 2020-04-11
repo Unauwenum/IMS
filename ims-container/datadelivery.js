@@ -96,6 +96,20 @@ const influxdb = new InfluxDB.InfluxDB({
   //port  : "8086",
  database : "aktiendb"
 })
+//praktisches Feature der InfluxDB: benutzt man diese RetentionPolicy
+//werden alle Daten die älter als 4 Tag sind automatisch gelöscht
+//4 Tag bei Intraday Daten --> Wochenende + Börsenfreier Tag berücksichtigen
+influxdb.createRetentionPolicy('10d', {
+  duration: '10d',
+  replication: 1
+
+})
+//ca 150 Tage für Datensätze der letzten 100 Börsentage
+influxdb.createRetentionPolicy('350d', {
+  duration: '350d',
+  replication: 1
+ 
+})
 
 
 
@@ -149,7 +163,7 @@ var IPoint = {
   fields: null,
   timestamp: " ",
 }
-
+var IWriteOptions;
 var IPointobj = new Object();
 //IPoint array für massenverarbeitung
 var IPointsarray = [];
@@ -160,6 +174,7 @@ var influxline = 'LastHundredShares, timezone='+timezone+',symbol='+symbol+' ope
 
 
 setTimeout(function() {
+//setInterval(function() { //nur symbolisch für 1 Tagesintervall
   mariadbcon.getConnection().then(conn => {
     conn.query("SELECT symbol FROM Sharesymbols").then(rows => {
     for( var i = 0; i < rows.length; i++){
@@ -248,7 +263,11 @@ setTimeout(function() {
       //Einfügen in Influxdb
       for (var i = 0; i < iarray.length; i++) {
         var b = iarray[i];
-        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]] );
+        /*IWriteOptions = {
+          retentionPolicy: '350d'
+        };
+        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]], IWriteOptions);*/
+        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]]);
       };
       console.log("Die DailyShares wurden für die Aktie von "+symbol+" aktualisiert");
       
@@ -260,7 +279,7 @@ setTimeout(function() {
 })//end rows
 
 })//end conn
-
+//}, 7850000); //end of Interval
 }, 5000);//end setTimoutfunction
 
 //laden der Echtzeitdaten, (1min Intraday intervall)
@@ -268,6 +287,7 @@ setTimeout(function() {
 API_Call ändern in Api_call intraday
 */
 setTimeout(function() {
+setInterval(function() { //soll jede Minute aktualisiert werden
 mariadbcon.getConnection().then(conn => {
   conn.query("SELECT symbol FROM Sharesymbols").then(rows => {
   for( var i = 0; i < rows.length; i++){
@@ -370,7 +390,11 @@ mariadbcon.getConnection().then(conn => {
         //Einfügen in Influxdb
         for (var i = 0; i < iarray.length; i++) {
           var b = iarray[i];
-          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]] );
+          /*IWriteOptions = {
+            retentionPolicy: '10d'
+          };
+          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);*/
+          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);
         };
         console.log("Die RealtimeShares wurden für die Aktie von "+symbol+" aktualisiert");
         
@@ -382,7 +406,7 @@ mariadbcon.getConnection().then(conn => {
   })//end rows
 
 })//end conn
-
+}, 62000); //end of Intervall
 }, 5000);//end setTimoutfunction
 
 }, 20000);
