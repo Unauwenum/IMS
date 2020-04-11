@@ -9,9 +9,12 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "cors": "^2.8.5",
     "create-react-app": "^3.4.1",
     "express": "^4.16.1",
     "influx": "^5.5.1",
-    "mariadb": "^2.3.1"
+    "mariadb": "^2.3.1",
+    "plotly.js": "^1.53.0",
+    "react-plotly.js": "^2.4.0"
   }
 }

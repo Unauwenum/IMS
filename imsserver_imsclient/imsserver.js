@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const cors = require('cors');
 
 // Constants
 const PORT = process.env.PORT || 8080;
@@ -8,6 +9,14 @@ const HOST = '0.0.0.0';
 
 // App
 const app = express();
+
+//Node js muss zugriffe erlauben
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+})
+app.use(cors());
 
 // Features for JSON Body
 app.use(express.urlencoded({ extended: true }));
@@ -22,7 +31,8 @@ app.get('/', (req, res) => {
 // Another GET Path - call it with: http://localhost:8080/s
 app.get('/s', (req, res) => {
     console.log("Got a request on Stock XX");
-    res.redirect('/Stock');
+    //res.redirect('/Stock');
+    res.redirect('http://localhost:3000/');
 });
 
 // Another GET Path that shows the actual Request (req) Headers - call it with: http://localhost:8080/request_info
@@ -47,10 +57,36 @@ app.post('/client_post', (req, res) => {
     }
 });
 
+app.post('/fetch_data', (req, res) => {
+  if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
+          var post_content = req.body.post_content;
+          var post_content_json = parse.JSON(post_content);
+          var symbol = post_content_json['Information']['symbol'];
+          var time = post_content_json['Information']['time'];
+          async function asyncDBCall() {
+            if(time == 'Daily') {
+              influxdb.query(`select * from DailyShares Where symbol = ${symbol}`)
+            }
+
+          }
+          console.log("Client send 'post_content' with content:", post_content)
+          // Set HTTP Status -> 200 is okay -> and send message
+          res.status(200).json({ message: 'I got your message: ' + post_content });
+      }
+      else {
+          // There is no body and post_contend
+          console.error("Client send no 'post_content'")
+          //Set HTTP Status -> 400 is client error -> and send message
+          res.status(400).json({ message: 'This function requries a body with "post_content"' });
+      }
+})
+
 // All requests to /static/... will be reidrected to static files in the folder "public"
 // call it with: http://localhost:8080/Home
 app.use('/Home', express.static('home'));
 app.use('/Stock', express.static('stock'));
+
+
 
 // Start the actual server
 app.listen(PORT, HOST);
