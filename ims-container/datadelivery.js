@@ -99,14 +99,14 @@ const influxdb = new InfluxDB.InfluxDB({
 //praktisches Feature der InfluxDB: benutzt man diese RetentionPolicy
 //werden alle Daten die älter als 4 Tag sind automatisch gelöscht
 //4 Tag bei Intraday Daten --> Wochenende + Börsenfreier Tag berücksichtigen
-influxdb.createRetentionPolicy('10d', {
-  duration: '10d',
+influxdb.createRetentionPolicy('4d', {
+  duration: '4d',
   replication: 1
 
 })
-//ca 150 Tage für Datensätze der letzten 100 Börsentage
-influxdb.createRetentionPolicy('350d', {
-  duration: '350d',
+//ca 250 Tage für Datensätze der letzten 100 Börsentage
+influxdb.createRetentionPolicy('250d', {
+  duration: '250d',
   replication: 1
  
 })
@@ -223,8 +223,9 @@ setTimeout(function() {
           dataobj.setMinutes(0);
           dataobj.setSeconds(0);
           dataobj.setMilliseconds(0);
-          timestamp = dataobj.getTime();
-          //console.log(timestamp);
+          timestamp = dataobj.getTime() / 1000;
+          console.log('Timestamp:' +timestamp);
+          console.log(dataobj);
           fields= new Object();
           //setzen der fields
           fields.open = open;
@@ -241,7 +242,7 @@ setTimeout(function() {
           IPointobj.fields = fields;
           IPointobj.timestamp = timestamp;
           //IPoinbt abspeichern
-          console.log(IPointobj.fields.open);
+         // console.log(IPointobj.fields.open);
           IPointsarray[i] = IPointobj;
           
           //es müssen die i werte abgespeichert werden, in denen ein Wert hinzugefügt wurde
@@ -262,9 +263,10 @@ setTimeout(function() {
     
       //Einfügen in Influxdb
       for (var i = 0; i < iarray.length; i++) {
+        console.log(i);
         var b = iarray[i];
-        /*IWriteOptions = {
-          retentionPolicy: '350d'
+       /* IWriteOptions = {
+          retentionPolicy: '250d'
         };
         influxdb.writeMeasurement('DailyShares', [IPointsarray[b]], IWriteOptions);*/
         influxdb.writeMeasurement('DailyShares', [IPointsarray[b]]);
@@ -329,12 +331,12 @@ mariadbcon.getConnection().then(conn => {
             //hier wird das Datum vom letzten Refresh herausgezogen
             helpstring = data['Meta Data']['3. Last Refreshed'];
             var dataobj = new Date(helpstring);
-            console.log(helpstring);
-            console.log('Hier kommt das Datenobjet');
-            console.log(dataobj);
+          //  console.log(helpstring);
+           // console.log('Hier kommt das Datenobjet');
+           // console.log(dataobj);
             dataobj.setHours(dataobj.getHours() + 2);
             dataobj.setMinutes(dataobj.getMinutes() - y);
-            console.log(dataobj);
+           // console.log(dataobj);
             y++;
           }
             //hier wird Datum in die richtige Form zum abfragen gebracht
@@ -342,7 +344,7 @@ mariadbcon.getConnection().then(conn => {
             var helpstring = ISOString.substring(11, 17);
             ISOString = ISOString.substr(0,10);
             ISOString = ISOString+" "+helpstring+"00";
-            console.log(ISOString);
+         //   console.log(ISOString);
             //etwas unschön aber falls der Wert undefined ist, wird der nächste schleifendurchlauf eingeleitet
             if(data['Time Series (1min)'][ISOString] == undefined) {
               z++;
@@ -357,8 +359,8 @@ mariadbcon.getConnection().then(conn => {
 
             dataobj.setSeconds(0);
             dataobj.setMilliseconds(0);
-            timestamp = dataobj.getTime();
-            //console.log(timestamp);
+            timestamp = dataobj.getTime() / 1000;
+            console.log('Timestamp: '+ timestamp);
             fields= new Object();
             //setzen der fields
             fields.open = open;
@@ -375,7 +377,7 @@ mariadbcon.getConnection().then(conn => {
             IPointobj.fields = fields;
             IPointobj.timestamp = timestamp;
             //IPoinbt abspeichern
-            console.log(IPointobj.fields.open);
+         //   console.log(IPointobj.fields.open);
             IPointsarray[i] = IPointobj;
             
             //es müssen die i werte abgespeichert werden, in denen ein Wert hinzugefügt wurde
@@ -391,7 +393,7 @@ mariadbcon.getConnection().then(conn => {
         for (var i = 0; i < iarray.length; i++) {
           var b = iarray[i];
           /*IWriteOptions = {
-            retentionPolicy: '10d'
+            retentionPolicy: '4d'
           };
           influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);*/
           influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);

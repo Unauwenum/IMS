@@ -11,11 +11,12 @@ const HOST = '0.0.0.0';
 const app = express();
 
 //Node js muss zugriffe erlauben
+/*
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
-})
+})*/
 app.use(cors());
 
 // Features for JSON Body
@@ -60,18 +61,25 @@ app.post('/client_post', (req, res) => {
 app.post('/fetch_data', (req, res) => {
   if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
           var post_content = req.body.post_content;
-          var post_content_json = parse.JSON(post_content);
-          var symbol = post_content_json['Information']['symbol'];
-          var time = post_content_json['Information']['time'];
-          async function asyncDBCall() {
+          console.log(post_content);
+          var post_content_json = JSON.parse(post_content);
+          var symbol = post_content_json['symbol'];
+          var time = post_content_json['time'];
+          
             if(time == 'Daily') {
-              influxdb.query(`select * from DailyShares Where symbol = ${symbol}`)
+               influxdb.query(`select * from DailyShares Where symbol = '${symbol}'`)
+               .then( result => res.status(200).json(result) )
+               .catch( error => res.status(500).json({error}));
+            }
+            if(time == 'Realtime') {
+               influxdb.query(`select * from RealtimeShares Where symbol = '${symbol}'`)
+               .then( result => res.status(200).json(result) )
+               .catch( error => res.status(500).json({error}));
             }
 
-          }
+          
           console.log("Client send 'post_content' with content:", post_content)
           // Set HTTP Status -> 200 is okay -> and send message
-          res.status(200).json({ message: 'I got your message: ' + post_content });
       }
       else {
           // There is no body and post_contend
