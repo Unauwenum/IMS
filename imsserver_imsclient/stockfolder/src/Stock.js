@@ -20,7 +20,7 @@ class Stock extends React.Component {
     fetchdata() {
         axios.post(`http://${SERVER}:8080/fetch_data`, {
             // definition of actual content that should be sned with post as JSON
-            post_content: '{"symbol": "IBM", "time": "Realtime"}'
+            post_content: '{"symbol": "IBM", "time": "Daily"}'
         })
             .then(res => {
                 // This is executed if the server returns an answer:
