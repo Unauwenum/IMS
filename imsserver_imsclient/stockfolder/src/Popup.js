@@ -5,6 +5,7 @@ const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol = "IBM"
 var wert;
+var Kontonummer = "1111";
 
 class Popup extends React.Component {
     constructor(props) {
@@ -48,7 +49,7 @@ class Popup extends React.Component {
         buydata: {Anzahl: event.target.value, Aktie: symbol, Gesamtwert: wert*event.target.value}
       })
     }
-
+  
     
     render() {
       return (
