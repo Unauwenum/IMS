@@ -99,8 +99,8 @@ const influxdb = new InfluxDB.InfluxDB({
 //praktisches Feature der InfluxDB: benutzt man diese RetentionPolicy
 //werden alle Daten die älter als 4 Tag sind automatisch gelöscht
 //4 Tag bei Intraday Daten --> Wochenende + Börsenfreier Tag berücksichtigen
-influxdb.createRetentionPolicy('4d', {
-  duration: '4d',
+influxdb.createRetentionPolicy('5d', {
+  duration: '5d',
   replication: 1
 
 })
@@ -225,7 +225,7 @@ setTimeout(function() {
           dataobj.setMilliseconds(0);
           //Influxdb speichert in Nanosekunden
           timestamp = dataobj.getTime() * 1000 * 1000;
-          console.log('Timestamp:' +timestamp);
+          console.log('Timestamp für Dailyaktien:' +timestamp);
           console.log(dataobj);
           fields= new Object();
           //setzen der fields
@@ -291,6 +291,8 @@ API_Call ändern in Api_call intraday
 */
 setTimeout(function() {
 setInterval(function() { //soll jede Minute aktualisiert werden
+//array neu initialisieren
+IPointsarray = []
 mariadbcon.getConnection().then(conn => {
   conn.query("SELECT symbol FROM Sharesymbols").then(rows => {
   for( var i = 0; i < rows.length; i++){
@@ -307,6 +309,7 @@ mariadbcon.getConnection().then(conn => {
         symbol = data['Meta Data']['2. Symbol'];
         
         //setzen der tags 
+        iarray = [],
         tags = new Object();
         tags.symbol = symbol;
         tags.timezone = timezone;
@@ -335,17 +338,21 @@ mariadbcon.getConnection().then(conn => {
           //  console.log(helpstring);
            // console.log('Hier kommt das Datenobjet');
            // console.log(dataobj);
-            dataobj.setHours(dataobj.getHours() + 2);
+           console.log('dataobject vor +2'+dataobj);
+            
             dataobj.setMinutes(dataobj.getMinutes() - y);
            // console.log(dataobj);
-            y++;
+            y = y+1;
+            console.log('y:'+y);
           }
             //hier wird Datum in die richtige Form zum abfragen gebracht
             var ISOString = dataobj.toISOString();
             var helpstring = ISOString.substring(11, 17);
             ISOString = ISOString.substr(0,10);
             ISOString = ISOString+" "+helpstring+"00";
-         //   console.log(ISOString);
+
+            console.log(ISOString);
+            console.log(data['Time Series (1min)'][ISOString])
             //etwas unschön aber falls der Wert undefined ist, wird der nächste schleifendurchlauf eingeleitet
             if(data['Time Series (1min)'][ISOString] == undefined) {
               z++;
@@ -362,6 +369,7 @@ mariadbcon.getConnection().then(conn => {
             dataobj.setMilliseconds(0);
             timestamp = dataobj.getTime() * 1000 * 1000;
             console.log('Timestamp: '+ timestamp);
+            console.log('Timestamp für einzelaktien');
             fields= new Object();
             //setzen der fields
             fields.open = open;
@@ -392,9 +400,10 @@ mariadbcon.getConnection().then(conn => {
         console.log(iarray.length);
         //Einfügen in Influxdb
         for (var i = 0; i < iarray.length; i++) {
+   
           var b = iarray[i];
           IWriteOptions = {
-            retentionPolicy: '4d'
+            retentionPolicy: '5d'
           };
           influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);
          // influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);
