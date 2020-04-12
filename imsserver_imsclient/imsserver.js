@@ -2,10 +2,12 @@
 
 const express = require('express');
 const cors = require('cors');
+const axios = require('axios');
 
 // Constants
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
+const BANKSERVER = process.env.BANKSERVER || "localhost";
 
 // App
 const app = express();
@@ -43,9 +45,71 @@ app.get('/request_info', (req, res) => {
 });
 
 // POST Path - call it with: POST http://localhost:8080/client_post
-app.post('/client_post', (req, res) => {
+app.post('/transaction', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
         var post_content = req.body.post_content;
+        var post_content_json = JSON.parse(post_content);
+         //wenn Aktienkauf
+        if(post_content_json['Transaktionsart'] == "Kauf") {
+          axios.post(`http://${SERVER}:8080/client_post`, {
+            post_content: `{"Abbuchung":[{"Kontonummer":${post_content_json['Kontonummer']},"Betrag":${post_content_json['Betrag']}}] }`
+            })
+            .then((res) => {
+                console.log(`statusCode: ${res.status}`)
+                console.log(res.data)
+                //wenn genug Geld -->
+                var bool = true;
+                if(bool) {
+
+                  var sqlinsertkauf = "INSERT INTO `Kauf` (`KaufID`, `DepotID`, `Symbol`, `Anzahl`, `Kaufpreis`) VALUES (NULL, '"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"', '"+post_content_json['Betrag']+"') ";
+                  conn.query(`SELECT DepotID FROM Depot WHERE UserID = ${post_content_json['UserID']}`).then(rows =>  {
+                  var DepotID = rows[0].DepotID;
+                      //Hat er bereits die Aktie?
+                      conn.query(`SELECT Symbol FROM Depotinhalt WHERE DepotID = ${DepotID}`).then(rows =>{
+                        for(var i = 0; i < rows.length; i++) {
+                          var helpsymbol = rows[i].symbol
+                          var helpbool = false;
+                          if(helpsymbol == post_content_json['Aktie']) {
+                            helpbool = true;
+                          }
+
+                          //wenn er die Aktie bereits hat --> Update Depotinhalt, insert Kauf , wenn nicht 2 Inserts
+                          if(helpbool){
+                            var sqlinsertdepotinhalt = "INSERT INTO `Depotinhalt` (`DepotID`, `Symbol`, `Anzahl`) VALUES ('"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"') ";
+                            conn.query(sqlinsertkauf).then(rows =>{ console.log('Es wurde ein Kauf in die DB aufgenommen')} )
+                            conn.query(sqlinsertdepotinhalt).then(rows => { 
+                              console.log('Es wurde der Depotinhalt aktualisiert')
+                              res.status(200).json({ message: 'Der Kauf war erfolgreich'});
+                            })
+                            
+                          } else {
+                            var sqlupdatedepotinhalt = "UPDATE Depotinhalt SET `Anzahl`=(`Anzahl`+"+post_content_json['Anzahl']+") WHERE `DepotID`="+DepotID+" AND `symbol`="+post_content_json['Aktie']+"";
+
+                            conn.query(sqlinsertkauf).then(rows =>{ console.log('Es wurde ein Kauf in die DB aufgenommen')} );
+                            conn.query(sqlupdatedepotinhalt).then(rows =>{
+                              console.log('Es wurde der Depotinhalt aktualisiert')
+                              res.status(200).json({ message: 'Der Kauf war erfolgreich'});
+                            });
+
+                          }
+
+                        }//end for
+                      }) //end depotinhaltselect
+
+                })
+              }//end if 
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+        }
+        if(post_content_json['Transaktionsart'] == "Verkauf") {
+
+        }
+       
+        
+
+
         console.log("Client send 'post_content' with content:", post_content)
         // Set HTTP Status -> 200 is okay -> and send message
         res.status(200).json({ message: 'I got your message: ' + post_content });
@@ -57,6 +121,26 @@ app.post('/client_post', (req, res) => {
         res.status(400).json({ message: 'This function requries a body with "post_content"' });
     }
 });
+//dieser Request wird bei einer Transaktion (Kauf/Verkauf von Aktien) angestoßen
+//Er schiickt seinerseits einen Request an den Bankserver ob das notwendige Guthaben vorhanden ist
+//ist es vorhanden werden  die Aktien gekauft und der Client bekommt eine Rückmeldung ob die Transkation erfolgreich war
+app.post('/post_content', (req,res) => {
+
+  if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
+    var post_content = req.body.post_content;
+    console.log("Client send 'post_content' with content:", post_content)
+    // Set HTTP Status -> 200 is okay -> and send message
+
+    res.status(200).json({ message: 'I got your message: ' + post_content });
+  }
+  else {
+    // There is no body and post_contend
+    console.error("Client send no 'post_content'")
+    //Set HTTP Status -> 400 is client error -> and send message
+    res.status(400).json({ message: 'This function requries a body with "post_content"' });
+}
+
+})
 
 app.post('/fetch_data', (req, res) => {
   if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
