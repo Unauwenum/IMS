@@ -266,11 +266,11 @@ setTimeout(function() {
       for (var i = 0; i < iarray.length; i++) {
         console.log(i);
         var b = iarray[i];
-        IWriteOptions = {
+        /*IWriteOptions = {
           retentionPolicy: '150d'
         };
-        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]], IWriteOptions);
-        //influxdb.writeMeasurement('DailyShares', [IPointsarray[b]]);
+        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]], IWriteOptions);*/
+        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]]);
       };
       console.log("Die DailyShares wurden für die Aktie von "+symbol+" aktualisiert");
       
@@ -402,11 +402,11 @@ mariadbcon.getConnection().then(conn => {
         for (var i = 0; i < iarray.length; i++) {
    
           var b = iarray[i];
-          IWriteOptions = {
+         /* IWriteOptions = {
             retentionPolicy: '5d'
           };
-          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);
-         // influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);
+          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);*/
+          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);
         };
         console.log("Die RealtimeShares wurden für die Aktie von "+symbol+" aktualisiert");
         

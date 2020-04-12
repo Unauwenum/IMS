@@ -28,8 +28,9 @@ body{
 }
 
 #middle{
-    margin-top: 3.28em;
-    position: fixed;
+    
+    margin: auto;
+    
     width: 100%;
     height: 100%;
 }

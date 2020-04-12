@@ -65,16 +65,60 @@ app.post('/fetch_data', (req, res) => {
           var post_content_json = JSON.parse(post_content);
           var symbol = post_content_json['symbol'];
           var time = post_content_json['time'];
-          
-            if(time == 'Daily') {
+            if(time == 'Daily' ) {
                influxdb.query(`select * from DailyShares Where symbol = '${symbol}'`)
                .then( result => res.status(200).json(result) )
                .catch( error => res.status(500).json({error}));
             }
             if(time == 'Realtime') {
+              
                influxdb.query(`select * from RealtimeShares Where symbol = '${symbol}'`)
                .then( result => res.status(200).json(result) )
                .catch( error => res.status(500).json({error}));
+            }
+            if(time == 'change') {
+              let changevalues = {
+                change: "",
+                wert: "",
+              }
+              var dataobj = new Date();
+              dataobj.setHours(0);
+              dataobj = dataobj.toISOString();
+              
+                influxdb.query(`select * from RealtimeShares Where symbol = '${symbol}' AND time >= '${dataobj}'`)
+                .then(result=> {
+
+                 
+                  //wenn result leer wird wert aus den letzen beiden Dailyshares berechnet, wenn er nicht leer ist wird wert aus aktuellem und vortageswert berechnet
+                  if(result[0] != undefined) {
+                    console.log(result[0]);
+                    console.log(result[1]);
+                    var open1 = result[result.length-1].open;
+                    //vortageswert wird abgefragt
+                    influxdb.query(`select * from DailyShares Where symbol = '${symbol}' AND time >= '${dataobj}' - 4d`)
+                    .then(result => {
+                      
+                      var close2 = result[result.length-1].close;
+                      changevalues.wert = open1;
+                      changevalues.change = (open1/close2)-1
+                      
+                      res.status(200).json(changevalues)
+                     
+                    })
+                  } else {
+                    influxdb.query(`select * from DailyShares Where symbol = '${symbol}' AND time >= now() - 5d`)
+                    .then(result => {
+                      var close1 = result[result.length-1].close;
+                      var close2 = result[result.length-2].close;
+                      changevalues.change = (close1/close2)-1;
+                      changevalues.wert = close1;
+                      //ergebnis an den Client
+                      res.status(200).json(changevalues)
+
+                    });
+                  }
+                }).catch( error => res.status(500).json({error}))
+              
             }
 
           

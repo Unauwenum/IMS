@@ -1,7 +1,7 @@
 'use strict';
 
 function loadDynamicContent(){
-
+    
     // Inhalte für Tabelle Aktienuebersicht User laden/einfügen
     var new_tr = document.createElement("tr");
     var new_td = document.createElement("td");
