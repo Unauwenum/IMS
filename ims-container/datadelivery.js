@@ -104,9 +104,9 @@ influxdb.createRetentionPolicy('4d', {
   replication: 1
 
 })
-//ca 250 Tage für Datensätze der letzten 100 Börsentage
-influxdb.createRetentionPolicy('250d', {
-  duration: '250d',
+//ca 150 Tage für Datensätze der letzten 100 Börsentage
+influxdb.createRetentionPolicy('150d', {
+  duration: '150d',
   replication: 1
  
 })
@@ -223,7 +223,8 @@ setTimeout(function() {
           dataobj.setMinutes(0);
           dataobj.setSeconds(0);
           dataobj.setMilliseconds(0);
-          timestamp = dataobj.getTime() / 1000;
+          //Influxdb speichert in Nanosekunden
+          timestamp = dataobj.getTime() * 1000 * 1000;
           console.log('Timestamp:' +timestamp);
           console.log(dataobj);
           fields= new Object();
@@ -265,11 +266,11 @@ setTimeout(function() {
       for (var i = 0; i < iarray.length; i++) {
         console.log(i);
         var b = iarray[i];
-       /* IWriteOptions = {
-          retentionPolicy: '250d'
+        IWriteOptions = {
+          retentionPolicy: '150d'
         };
-        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]], IWriteOptions);*/
-        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]]);
+        influxdb.writeMeasurement('DailyShares', [IPointsarray[b]], IWriteOptions);
+        //influxdb.writeMeasurement('DailyShares', [IPointsarray[b]]);
       };
       console.log("Die DailyShares wurden für die Aktie von "+symbol+" aktualisiert");
       
@@ -359,7 +360,7 @@ mariadbcon.getConnection().then(conn => {
 
             dataobj.setSeconds(0);
             dataobj.setMilliseconds(0);
-            timestamp = dataobj.getTime() / 1000;
+            timestamp = dataobj.getTime() * 1000 * 1000;
             console.log('Timestamp: '+ timestamp);
             fields= new Object();
             //setzen der fields
@@ -392,11 +393,11 @@ mariadbcon.getConnection().then(conn => {
         //Einfügen in Influxdb
         for (var i = 0; i < iarray.length; i++) {
           var b = iarray[i];
-          /*IWriteOptions = {
+          IWriteOptions = {
             retentionPolicy: '4d'
           };
-          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);*/
-          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);
+          influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]], IWriteOptions);
+         // influxdb.writeMeasurement('RealtimeShares', [IPointsarray[b]]);
         };
         console.log("Die RealtimeShares wurden für die Aktie von "+symbol+" aktualisiert");
         
