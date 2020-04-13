@@ -1,0 +1,150 @@
+import React, { Component } from 'react'
+import axios from 'axios';
+
+const SERVER = process.env.SERVER || "localhost";
+var time = "change";
+var symbol = "IBM"
+var tabelleninhalt = [];
+class Table1 extends Component {
+    
+    constructor(props) {
+       super(props) //since we are extending class Table so we have to use super in order to override Component class constructor
+       this.state = { //state is by default an object
+          sharedata: [
+             { Aktie: "-", Wert: "-", Veränderung: "-" },
+             
+          ]
+       }
+    }
+
+    componentDidMount() {/*
+      this.fetchsymbols();
+      this.fetchdata()*/
+      var object = new Object();
+      object.Aktie = "IBM";
+      object.Wert = "314$";
+      object.Veränderung = "0,35%";
+      tabelleninhalt[0] = object
+      tabelleninhalt[1] = object
+      this.setState({
+        sharedata: tabelleninhalt
+      })
+      console.log(object);
+      
+  }
+  fetchsymbols() {
+    
+    const pointer = this;
+         
+         var object = new Object();
+         var wert;
+         var veränderung;
+        console.log(pointer);
+        axios.post(`http://${SERVER}:8080/fetch_symbols`, {
+            // definition of actual content that should be sned with post as JSON
+            post_content: `Request for symbols`
+        })
+            .then(res => {
+                // This is executed if the server returns an answer:
+                // Status code represents: https://de.wikipedia.org/wiki/HTTP-Statuscode
+                console.log(`statusCode: ${res.status}`)
+                // Print out actual data:
+                //alles symbole in einem Array
+                for ( var i = 0; i < res.length; i++) {
+                    object = new Object();
+                    object.Aktie = res.data[i].aktie
+                    tabelleninhalt[i] = object
+                }//end for
+
+               
+            }) //endthen
+            .catch(error => {
+                // This is executed if there is an error:
+                console.error(error)
+            })
+
+  }
+  //für jedes Object bzw symbol in tabelleninhalt wwerden wert und veränderung hinzugefügt
+  fetchdata () {
+    const pointer = this;
+   for( var i = 0; i < tabelleninhalt.length; i ++){
+        
+        symbol = tabelleninhalt[i].Aktie;
+         var wert;
+         var veränderung;
+        console.log(pointer);
+        axios.post(`http://${SERVER}:8080/fetch_data`, {
+            // definition of actual content that should be sned with post as JSON
+            post_content: `{"symbol": "${symbol}", "time": "${time}"}`
+        })
+            .then(res => {
+                // This is executed if the server returns an answer:
+                // Status code represents: https://de.wikipedia.org/wiki/HTTP-Statuscode
+                console.log(`statusCode: ${res.status}`)
+                // Print out actual data:
+                console.log(res.data)
+                console.log(res.data.wert)
+                  var helpnumber2 = res.data.wert;
+                  wert = helpnumber2 - 0;
+                  wert = wert+"$"
+                  tabelleninhalt[i].Aktie = wert
+                  
+                  var helpnumber = res.data.change
+                  helpnumber = helpnumber *100;
+                  veränderung = helpnumber.toFixed(2);
+                  veränderung = veränderung +'%';
+                  tabelleninhalt[i].Veränderung = veränderung;
+                  
+                  
+
+               
+            })
+            .catch(error => {
+                // This is executed if there is an error:
+                console.error(error)
+            })
+        }
+        pointer.setState({
+            sharedata: tabelleninhalt
+            })
+
+  }
+    renderTableData() {
+        return this.state.sharedata.map((sharedata, index) => {
+           const { Aktie, Wert, Veränderung } = sharedata //destructuring
+           return (
+              <tr key={Aktie}>
+                 <td>{Aktie}</td>
+                 <td>{Wert}</td>
+                 <td>{Veränderung}</td>
+                 <td><button>Kaufen</button></td>
+              </tr>
+           )
+        })
+     }
+     renderTableHeader() {
+        let header = Object.keys(this.state.sharedata[0])
+        return header.map((key, index) => {
+           return <th key={index}>{key.toUpperCase()}</th>
+        })
+     }
+ 
+     render() {
+        return (
+           <div>
+              <table id='sharedata'>
+                 <tbody>
+                    <tr>{this.renderTableHeader()}</tr>
+                    {this.renderTableData()}
+                 </tbody>
+              </table>
+           </div>
+        )
+     }
+  
+ }
+ 
+ 
+
+ 
+ export default Table1 

@@ -2,6 +2,7 @@ import React from 'react';
 import Stock from './Stock';
 import Table from './Table';
 import Popup from './Popup';
+import history from './history';
 import './App.css';
 
 
@@ -25,7 +26,7 @@ class StockApp extends React.Component {
         <Stock></Stock>
         <Table></Table>
         <button onClick={this.togglePopup.bind(this)}>show popup</button>
-        <button onClick={() => {alert('woooooooot?');}}>try me when popup is open</button>
+        <button onClick={() => history.push('/Home')}>Zurück zur Depotübersicht</button>
         {this.state.showPopup ? 
           <Popup
             text='Close Me'

@@ -1,8 +1,10 @@
 import React from 'react';
-import Stock from './Stock';
-import Table from './Table';
-import Popup from './Popup';
+import { Router, Switch, Route } from 'react-router-dom';
+import HomeApp from './HomeApp';
+import LoginApp from './LoginApp';
+import StockApp from './StockApp';
 import './App.css';
+import history from './history';
 
 
 
@@ -19,7 +21,40 @@ class App extends React.Component {
       showPopup: !this.state.showPopup
     });
   }
+
   render() {
+    return (
+    <Router history={history}>
+        <div>
+      
+          <hr />
+          <Switch>
+              <Route exact path='/' component={LoginApp} />
+              <Route path='/Home' component={HomeApp} />
+              <Route path='/Stock' component={StockApp} />
+          </Switch>
+        </div>
+      </Router>
+    );
+  }
+
+ 
+};
+
+/*
+function App() {
+  return (
+    <div className="App">
+      <Stock></Stock>
+      <Table></Table>
+      <Popup></Popup>
+    </div>
+  );
+}
+*/
+
+/*
+ render() {
     return (
       <div className='app'>
         <Stock></Stock>
@@ -36,17 +71,5 @@ class App extends React.Component {
       </div>
     );
   }
-};
-
-/*
-function App() {
-  return (
-    <div className="App">
-      <Stock></Stock>
-      <Table></Table>
-      <Popup></Popup>
-    </div>
-  );
-}
 */
 export default App;
