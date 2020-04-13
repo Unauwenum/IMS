@@ -14,7 +14,8 @@ class Stock extends React.Component {
         super(props);
             this.state = {
                 stockChartXValues: [],
-                stockChartYValues: []
+                stockChartYValues: [],
+                time: "Realtime"
             }
         }
     
@@ -30,7 +31,7 @@ class Stock extends React.Component {
         console.log(pointer);
         axios.post(`http://${SERVER}:8080/fetch_data`, {
             // definition of actual content that should be sned with post as JSON
-            post_content: `{"symbol": "${symbol}", "time": "${time}"}`
+            post_content: `{"symbol": "${symbol}", "time": "${this.state.time}"}`
         })
             .then(res => {
                 // This is executed if the server returns an answer:
@@ -54,26 +55,46 @@ class Stock extends React.Component {
                 console.error(error)
             })
     }
+    onIntradayClicked() {
+        this.setState({
+          time: "Realtime"
+        });
+        this.fetchdata();
+        this.render();
+      }
+      onDailyClicked() {
+        this.setState({
+          time: "Daily"
+        })
+        this.fetchdata();
+        this.render();
+        console.log('er geht rein');
+      }  
+    renderPlot() {
+        return(<Plot
+            data={[
+                {
+                    x: this.state.stockChartXValues,
+                    y: this.state.stockChartYValues,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    marker: {color: 'red'},
 
-    
+                },
+            ]}
+            layout= { {width: 720, height: 440, title: `Aktie: ${symbol}`}}
+
+             />)
+    }
     render() {
         return (
             <div>
                 <h1>Aktienchart</h1>
-                <Plot
-                data={[
-                    {
-                        x: this.state.stockChartXValues,
-                        y: this.state.stockChartYValues,
-                        type: 'scatter',
-                        mode: 'lines+markers',
-                        marker: {color: 'red'},
-
-                    },
-                ]}
-                layout= { {width: 720, height: 440, title: `Aktie: ${symbol}`}}
-
-                 />
+                {this.renderPlot()}
+                 <br></br>
+                 <button onClick={()=>this.onIntradayClicked()}>Intraday</button>
+                 <button onClick={()=>this.onDailyClicked()}>Daily</button>
+                 <br></br>
             </div>
         )//end return
     } //end render

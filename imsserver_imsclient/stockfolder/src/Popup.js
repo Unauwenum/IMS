@@ -6,6 +6,7 @@ var time = "change";
 var symbol = "IBM"
 var wert;
 var Kontonummer = "1111";
+const UserID = "1";
 
 class Popup extends React.Component {
     constructor(props) {
@@ -46,10 +47,37 @@ class Popup extends React.Component {
     
     onAnzahlChange(event) {
       this.setState({
-        buydata: {Anzahl: event.target.value, Aktie: symbol, Gesamtwert: wert*event.target.value}
+        buydata: {Anzahl: parseInt(event.target.value), Aktie: symbol, Gesamtwert: wert*event.target.value}
       })
     }
+    onKaufClicked() {
+      //einfache Eingabeprüfung auf Integer
+      if(Number.isInteger(this.state.buydata.Anzahl)){
+      axios.post(`http://${SERVER}:8080/transaction`, {
+              // definition of actual content that should be sned with post as JSON
+              post_content: `{"UserID": "${UserID}", "Kontonummer": "${Kontonummer}", "Betrag": "${this.state.buydata.Gesamtwert}", "Transaktionsart": "Kauf", "Aktie": "${this.state.buydata.Aktie}", "Anzahl": "${this.state.buydata.Anzahl}"}`
+          })
+              .then(res => {
+                  // This is executed if the server returns an answer:
+                  // Status code represents: https://de.wikipedia.org/wiki/HTTP-Statuscode
+                  console.log(`statusCode: ${res.status}`)
+                  // Print out actual data:
+                  console.log(res.data)
+                  console.log(res.data.wert)
+                  wert = res.data.wert;
+                    
+                    
   
+                 
+              })
+              .catch(error => {
+                  // This is executed if there is an error:
+                  console.error(error)
+              })
+
+      } else { alert('Bitte geben Sie einen gültigen Wert ein. Es sindnur ganze Zahlen erlaubt')
+      }//endIF 
+    }
     
     render() {
       return (
@@ -59,7 +87,7 @@ class Popup extends React.Component {
           <h1>{this.state.buydata.Aktie} kaufen:</h1>
           Anzahl: <input value={this.state.buydata.Anzahl} onChange={(e)=>this.onAnzahlChange(e)}></input>Gesamtpreis: {this.state.buydata.Gesamtwert}$:
           
-          <button>Kauf bestätigen</button>
+          <button onClick={()=>this.onKaufClicked()}>Kauf bestätigen</button>
           <button onClick={this.props.closePopup}>Fertig</button>
           </div>
         </div>
