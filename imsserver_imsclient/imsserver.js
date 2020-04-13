@@ -150,6 +150,7 @@ app.post('/fetch_data', (req, res) => {
           var symbol = post_content_json['symbol'];
           var time = post_content_json['time'];
             if(time == 'Daily' ) {
+              //if samstag/sonntag/montag > 9:35
                influxdb.query(`select * from DailyShares Where symbol = '${symbol}'`)
                .then( result => res.status(200).json(result) )
                .catch( error => res.status(500).json({error}));

@@ -5,6 +5,7 @@ import Plot from 'react-plotly.js';
 
 
 
+
 const SERVER = process.env.SERVER || "localhost";
 var time = "Daily";
 var symbol = "IBM"

@@ -1,14 +1,12 @@
 'use strict';
 
-    const axios = require('axios').default;
-    const mariadb = require('mariadb');
-
 function loadStockOverview(){
 
     
 }
 
 function loadDynamicContent(){
+
 
 
 

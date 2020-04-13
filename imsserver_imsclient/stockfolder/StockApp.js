@@ -7,7 +7,7 @@ import './App.css';
 
 
 
-class App extends React.Component {
+class StockApp extends React.Component {
   constructor() {
     super();
     this.state = {
@@ -49,4 +49,4 @@ function App() {
   );
 }
 */
-export default App;
+export default StockApp;
