@@ -1,6 +1,6 @@
 import React from 'react';
-import Table1 from './Hometables/Table1';
-import Table2 from './Hometables/Table2';
+import Table1 from './Table1';
+import Table2 from './Table2';
 
 class HomeApp extends React.Component {
     render() {

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import axios from 'axios';
+import history from './history';
 
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
@@ -109,7 +110,12 @@ class Table1 extends Component {
             })
 
   }
+    onButtonclicked(e) {
+      console.log(e.target.id);
+      history.push('/Stock?Aktie='+e.target.id);
+    }
     renderTableData() {
+        
         return this.state.sharedata.map((sharedata, index) => {
            const { Aktie, Wert, Veränderung } = sharedata //destructuring
            return (
@@ -117,7 +123,7 @@ class Table1 extends Component {
                  <td>{Aktie}</td>
                  <td>{Wert}</td>
                  <td>{Veränderung}</td>
-                 <td><button>Kaufen</button></td>
+                 <td><button id = {Aktie} onClick={(e)=>this.onButtonclicked(e)} >Kaufen</button></td>
               </tr>
            )
         })

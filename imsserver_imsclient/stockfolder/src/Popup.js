@@ -1,12 +1,13 @@
 import React from 'react';
 import axios from 'axios';
-
+import histroy from './history';
+import mycookie from './Cookie';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol = "IBM"
 var wert;
-var Kontonummer = "1111";
-const UserID = "1";
+var Kontonummer = mycookie.kontonummer;
+const UserID = mycookie.userid;
 
 class Popup extends React.Component {
     constructor(props) {

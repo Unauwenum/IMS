@@ -3,7 +3,9 @@ import React from "react";
 import history from "./history";
 import "./Login.css";
 import axios from 'axios';
+import mycookie from './Cookie';
 const SERVER = process.env.SERVER || "localhost";
+
 
 class LoginApp extends React.Component {
 
@@ -12,8 +14,9 @@ class LoginApp extends React.Component {
             this.state = {
                 user: "",
                 password: "",
-                depotid: "",
-                userid: "",
+                depotid: "1",
+                userid: "1",
+                kontonummer: "111",
                 loggedin: false
             }
             this.handleChangePassword = this.handleChangePassword.bind(this);
@@ -50,6 +53,9 @@ class LoginApp extends React.Component {
                     userid: res.data.userid,
                     depotid: res.data.depotid
                 })
+                mycookie.loggedin = res.data.status;
+                mycookie.userid = res.data.userid;
+                mycookie.depotid = res.data.userid;
                 }
             })
             .catch(error => {

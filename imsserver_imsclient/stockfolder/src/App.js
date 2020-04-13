@@ -5,6 +5,7 @@ import LoginApp from './LoginApp';
 import StockApp from './StockApp';
 import './App.css';
 import history from './history';
+import Headerline from './Headerline';
 
 
 
@@ -26,7 +27,7 @@ class App extends React.Component {
     return (
     <Router history={history}>
         <div>
-      
+          <Headerline></Headerline>
           <hr />
           <Switch>
               <Route exact path='/' component={LoginApp} />
