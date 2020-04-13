@@ -1,6 +1,61 @@
 'use strict';
 
+    const axios = require('axios').default;
+    const mariadb = require('mariadb');
+
+function loadStockOverview(){
+
+    
+}
+
 function loadDynamicContent(){
+
+
+
+    //Alle kaufbaren Aktien laden
+    //Verbindung mit MariaDB wird hergestellt
+
+    const pool = mariadb.createPool({
+        host: "mysql-development",
+        user: "secureuser",
+        password: "securepassword",
+        port: 3306,
+        database: "imsdb"
+    });
+    pool.getConnection()
+        .then(conn => {
+        
+            conn.query("SELECT * FROM Sharesymbols")
+                .then(rows => { // rows: [ {val: 1}, meta: ... ]
+                    console.log(rows);
+                })
+                .then(res => { // res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
+                conn.release(); // release to pool
+                })
+                .catch(err => {
+                    conn.release(); // release to pool
+                })
+                
+        }).catch(err => {
+            console.log("Connection to " + pool.database + "failed!")
+        });
+
+    // Akt. Veränderung für Aktie abfragen
+    // axios.post(`http://${SERVER}:8080/fetch_data`, {
+    //     post_content: `{"symbol": "${symbol}", "time": "change"}`
+    // })
+    //     .then((res) => {
+    //         // This is executed if the server returns an answer:
+    //         // Status code represents: https://de.wikipedia.org/wiki/HTTP-Statuscode
+    //         console.log(`statusCode: ${res.status}`)
+    //         // Print out actual data:
+    //         console.log(res.data);
+    //         console.log(res.data.wert);
+    //     })
+    //     .catch((error) => {
+    //         // This is executed if there is an error:
+    //         console.error(error)
+    //     })
     
     // Inhalte für Tabelle Aktienuebersicht User laden/einfügen
     var new_tr = document.createElement("tr");
@@ -20,7 +75,7 @@ function loadDynamicContent(){
     var verkaufenBTN = document.createElement("button");
     verkaufenBTN.innerHTML = "Verkaufen";
     verkaufenBTN.name = "IBM";
-    verkaufenBTN.setAttribute("onClick", "alert('Hier muss noch was vernünftiges programmiert werden, so dass ein Popup Fenster erscheint bei dem man den Verkauf bestätigen und zuvor die Anzahl eingeben muss!')");
+    verkaufenBTN.setAttribute("onClick", "");
     new_td.appendChild(verkaufenBTN);
     new_tr.appendChild(new_td);
 
