@@ -1,0 +1,19 @@
+CREATE TABLE Kunde(
+    Kdnr INT (4) PRIMARY KEY,
+    Name VARCHAR (20) NOT NULL,
+    Passwort VARCHAR (8) NOT NULL
+
+);
+CREATE TABLE Konto(
+    Knr INT (6) PRIMARY KEY,
+    Kontostand FLOAT,
+    ID INT (4) REFERENCES Kunde (Kdnr) 
+);
+
+INSERT INTO Kunde (Kdnr, Name, Passwort)
+VALUES (1111, 'A', 11111111),
+ (2222, 'B', 22222222);
+
+INSERT INTO Konto (Knr, Kontostand, ID)
+VALUES (111111, 2000, 1111),
+ (222222, 3500, 2222);

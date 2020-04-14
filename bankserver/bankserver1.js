@@ -25,10 +25,15 @@ console.log("vor Connect");
 verbindung.connect(function (err) {
   if (err) throw err;
   console.log("connected!");
- 
+  /*
+  verbindung.query(" SELECT * FROM Konto", function (err, result, fields) {
+    if (err) throw err;
+    console.log(result);
+  });
+*/
 
 });
-
+// -----neuer code
 //wenn Tabelle nicht vorhanden, erstellen
 verbindung.query("SHOW TABLES", function (err, result) {
   if (err) throw err;
@@ -81,6 +86,7 @@ verbindung.query("SHOW TABLES", function (err, result) {
 }
 );
 
+console.log("---vor select konto ---");
 setTimeout(function () {
   verbindung.query(" SELECT * FROM Konto", function (err, result, fields) {
     if (err) throw err;
@@ -97,66 +103,78 @@ setTimeout(function () {
 }, 3000);
 
 
+//verbindung.query(" SELECT * FROM "+var+" )
+
 // App
 const app = express();
 // **** Kauf****
 app.get('/Kauf', (req, res) => {
 
-  var obj = JSON.parse('{"Abbuchung":[{"Kontonummer":111,"Betrag":170}]}');
+  var obj = JSON.parse('{"Abbuchung":[{"Kontonummer":222,"Betrag":170}]}');
+
   console.log("*** Abbuchungsbetrag: " + obj.Abbuchung[0].Betrag);
   verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr = " + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
     if (err) throw err;
-    console.log("Kontostand vor Abbuchung: " + result[0].Kontostand);
+    console.log("Kontostand: " + result[0].Kontostand);
+
 
     if (obj.Abbuchung[0].Betrag < result[0].Kontostand) {
       verbindung.query("UPDATE Konto SET Kontostand=Kontostand-" + obj.Abbuchung[0].Betrag + " WHERE Knr = " + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
         if (err) throw err;
       });
 
+
       verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr =" + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
         if (err) throw err;
         console.log("Kontostand nach Abbuchung: " + result[0].Kontostand);
-      
-      res.send('Der Kontostand nach der Abbuchung beträgt ' + result[0].Kontostand +' Dollar');
-    });
+      });
+      res.send('Hallo ich bin der bankserver der Kontostand beträgt' + result[0].Kontostand);
     } else {
       verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr = " + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
         if (err) throw err;
-        res.send('Fehler. Der Kontostand ist zu niedrig. Nur noch ' + result[0].Kontostand + ' Dollar übrig');
+        res.send('zu wenig Geld, nur noch ' + result[0].Kontostand + ' Euro übrig');
       }
       )
     };
   });
 });
-//Test mit in URL mitgeben
-/*app.get('/T', (req, res) => {
+
+app.get('/T', (req, res) => {
   var obj = JSON.parse(req.query.Betrag + req.query.Kontonummer);
   //var obj = JSON.parse('{"Abbuchung":[{"Kontonummer":111,"Betrag":170}]}');
   console.log("Test");
   res.send("Betrag " + req.query.Betrag + " Kontonummer " + req.query.Kontonummer)
-});*/
+});
 
 
 // **** Verkauf****
 app.get('/Verkauf', (req, res) => {
 
-  var obj = JSON.parse('{"Gutschreibung":[{"Kontonummer":111,"Betrag":170}]}');
+  var obj = JSON.parse('{"Abbuchung":[{"Kontonummer":111,"Betrag":170}]}');
 
-  console.log("Zubuchungsbetrag: " + obj.Gutschreibung[0].Betrag);
-  verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr = " + obj.Gutschreibung[0].Kontonummer, function (err, result, fields) {
+  console.log("*** Zubuchungsbetrag: " + obj.Abbuchung[0].Betrag);
+  verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr = " + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
     if (err) throw err;
-    console.log("Kontostand vor Zubuchung: " + result[0].Kontostand);
+    console.log("Kontostand: " + result[0].Kontostand);
 
-    verbindung.query("UPDATE Konto SET Kontostand=Kontostand+" + obj.Gutschreibung[0].Betrag + " WHERE Knr = " + obj.Gutschreibung[0].Kontonummer, function (err, result, fields) {
+
+    verbindung.query("UPDATE Konto SET Kontostand=Kontostand+" + obj.Abbuchung[0].Betrag + " WHERE Knr = " + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
       if (err) throw err;
     });
 
-    verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr =" + obj.Gutschreibung[0].Kontonummer, function (err, result, fields) {
+
+    verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr =" + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
       if (err) throw err;
-      console.log("Erledigt. Der Kontostand nach der Zubuchung beträgt " + result[0].Kontostand +" Dollar");
-    
-    res.send('Erledigt. Der Kontostand nach der Gutschreibung beträgt ' + result[0].Kontostand+ 'Dollar');
-  });
+      console.log("Kontostand nach Zubuchung: " + result[0].Kontostand);
+    });
+
+    /*var stand = kontostand(111);
+
+    setTimeout(function () {
+      console.log("Stand " + stand);
+    }, 6000);*/
+
+    res.send('Hallo ich bin der bankserver der Kontostand beträgt vor Zubuchung ' + result[0].Kontostand);
   });
 });
 
@@ -202,16 +220,3 @@ verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr =" +obj.Abbuchung[0].K
 // var Kontonumme = oject['Abbuchung']['Kontonummer'];
 
 // String = "{ Statuscode }"
-
-//Versuch in Funktion auszulagern
-/*function kontostand(Kontonummer) {
-  setTimeout(function () {
-    verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr =" + Kontonummer, function (err, result, fields) {
-      console.log("in funk: " + result[0].Kontostand);
-      if (err) throw err;
-      var erg = result[0].Kontostand;
-      console.log("ergebnis " + erg);
-      return erg;
-    })
-  },3000);
-};*/
