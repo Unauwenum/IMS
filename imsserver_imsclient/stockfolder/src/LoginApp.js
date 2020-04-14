@@ -36,9 +36,9 @@ class LoginApp extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     //User überprüfen
-    axios.post(`http://${SERVER}:8080/fetch_user`, {
+    axios.post(`http://${SERVER}:8080/login`, {
             // definition of actual content that should be sned with post as JSON
-            post_content: `{"user": "${this.state.user}", "password": "${this.state.password}"}`
+            post_content: `{"username": "${this.state.user}"}` //, "password": "${this.state.password}
         })
             .then(res => {
                 // This is executed if the server returns an answer:
@@ -46,28 +46,28 @@ class LoginApp extends React.Component {
                 console.log(`statusCode: ${res.status}`)
                 // Print out actual data:
                 console.log(res.data)
-                console.log(res.data[0])
-                if(res.data.status) {
+               console.log(this.state.password);
+               console.log(res.data.Password);
+                if(res.data.message == 'Query successful!' && res.data.Password == this.state.password) {
+                alert('Login erfolgreich');
                 this.setState({
-                    loggedin: res.data.status,
+                    loggedin: true,
                     userid: res.data.userid,
                     depotid: res.data.depotid
                 })
                 mycookie.loggedin = res.data.status;
                 mycookie.userid = res.data.userid;
-                mycookie.depotid = res.data.userid;
+                mycookie.depotid = res.data.depotid;
+                history.push('/Home')
+                } else {// end if 
+                  alert('LoginFailed Incorrect password');
                 }
             })
             .catch(error => {
                 // This is executed if there is an error:
                 console.error(error)
             })
-    if(this.state.loggedin) {
-        
-        history.push('/Home')
-    } else {
-        alert('LoginFailed');
-    }
+   
   }
   
   

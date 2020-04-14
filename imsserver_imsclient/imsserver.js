@@ -56,7 +56,7 @@ app.post('/transaction', (req, res) => {
         //Aktienkauf
         // 
         if(post_content_json['Transaktionsart'] == "Kauf") {
-          axios.post(`http://${SERVER}:8080/client_post`, {
+          axios.post(`http://${BANKSERVER}:8080/client_post`, {
             post_content: `{"Abbuchung":[{"Kontonummer":${post_content_json['Kontonummer']},"Betrag":${post_content_json['Betrag']}}] }`
             })
             .then((res) => {
@@ -187,42 +187,52 @@ app.post('/post_content', (req,res) => {
 //Wenn Abfrage fehlgeschlagen json mit selben Werten aber nur Message ist entsprechend gefüllt, der Rest ist null
 app.post('/login', (req, res) => {
   var post_content = req.body.post_content;
+  console.log(post_content);
+  console.log('interessant');
   var post_content_json = JSON.parse(post_content);
-  conn.query('Select UserID, Password From User Where Username = '+post_content_json['username']).then( rows => {
+  console.log('baut verbindung nocht nicht auf');
+  mariadbcon.getConnection().then(conn=> {
+    console.log('baut verbindung auf');
+  conn.query(`Select UserID, Password From User WHERE Username = '${post_content_json['username']}'`).then( rows => {
     if(rows[0] != null){
       console.log('Anfrage nach UserID und Passwort erfolgreich: ' + rows[0].UserID + ', ' + rows[0].Password);
       conn.query('Select DepotID From Depot Where UserID = ' + rows[0].UserID).then( rowsDepot => {
         if(rowsDepot[0].DepotID != null){
           console.log('Anfrage nach DepotID erfolgreich: ' + rowsDepot[0].DepotID);
-          res.statusCode(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID})
+          res.status(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID})
         }
         else{
           console.log('Fehler bei Anfrage nach DepotID.');
-          res.statusCode(200).json({message: 'The User do not have an Depot! Before logging in this is needed!', UserID: null, Password: null, DepotID: null});
+          res.status(200).json({message: 'The User do not have an Depot! Before logging in this is needed!', UserID: null, Password: null, DepotID: null});
         }
       });
     }
     else{
       console.log('Fehler bei Anfrage nach UserID und Passwort.');
-      res.statusCode(200).json({message:'This User could not be found in System!', UserID: null, Password: null, DepotID: null});
+      res.status(200).json({message:'This User could not be found in System!', UserID: null, Password: null, DepotID: null});
     }
   });
+});//end mariadbgetConnection
 });
 
 //Abfrage aller angebotenen Aktien
 //Wenn Abfrage erfolgreich wird json Objekt von Datenbank direkt - ohne umstrukturierung - weiter gegeben
 //Wenn Abfrage erfolglos wird json mit message attribut und einem entsprechenden Wert zurückgegeben
 app.post('/fetch_stocksymbols', (req, res) => {
+  var post_content = req.body.post_content;
+  console.log(post_content);
+  mariadbcon.getConnection().then(conn=> {
   conn.query('Select * From Sharesymbols').then( rows => {
     if(rows != null){
       console.log('Anfrage nach allen Aktien erfolgreich!');
-      res.statusCode(200).json(rows);
+      res.status(200).json(rows);
     }
     else{
       console.log('Fehler bei Anfrage nach allen Aktien!');
-      res.statusCode(200).json({message:'Query not succsessful. Please try again!'});
+      res.status(200).json({message:'Query not succsessful. Please try again!'});
     }
   });
+}); //end get Conn
 });
 
 app.post('/fetch_data', (req, res) => {
@@ -258,8 +268,8 @@ app.post('/fetch_data', (req, res) => {
                  
                   //wenn result leer wird wert aus den letzen beiden Dailyshares berechnet, wenn er nicht leer ist wird wert aus aktuellem und vortageswert berechnet
                   if(result[0] != undefined) {
-                    console.log(result[0]);
-                    console.log(result[1]);
+                   // console.log(result[0]);
+                  //  console.log(result[1]);
                     var open1 = result[result.length-1].open;
                     //vortageswert wird abgefragt
                     influxdb.query(`select * from DailyShares Where symbol = '${symbol}' AND time >= '${dataobj}' - 4d`)

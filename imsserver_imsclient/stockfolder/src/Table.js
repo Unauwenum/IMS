@@ -4,7 +4,8 @@ import axios from 'axios';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol = "IBM"
-
+let url;
+var symbol;
 class Table extends Component {
     
     constructor(props) {
@@ -22,7 +23,8 @@ class Table extends Component {
       
   }
   fetchdata () {
-
+   url = window.location.href;
+   symbol = url.substring(34,url.length);
    const pointer = this;
          var wert;
          var veränderung;

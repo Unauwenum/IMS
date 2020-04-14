@@ -18,9 +18,9 @@ class Table1 extends Component {
        }
     }
 
-    componentDidMount() {/*
+    componentDidMount() {
       this.fetchsymbols();
-      this.fetchdata()*/
+      this.fetchdata();
       var object = new Object();
       object.Aktie = "IBM";
       object.Wert = "314$";
@@ -41,7 +41,7 @@ class Table1 extends Component {
          var wert;
          var veränderung;
         console.log(pointer);
-        axios.post(`http://${SERVER}:8080/fetch_symbols`, {
+        axios.post(`http://${SERVER}:8080/fetch_stocksymbols`, {
             // definition of actual content that should be sned with post as JSON
             post_content: `Request for symbols`
         })
@@ -51,13 +51,17 @@ class Table1 extends Component {
                 console.log(`statusCode: ${res.status}`)
                 // Print out actual data:
                 //alles symbole in einem Array
-                for ( var i = 0; i < res.length; i++) {
+                console.log(res.data);
+                for ( var i = 0; i < res.data.length; i++) {
+                 
                     object = new Object();
-                    object.Aktie = res.data[i].aktie
+                    object.Aktie = res.data[i].symbol
                     tabelleninhalt[i] = object
+                    console.log(tabelleninhalt[i]);
+                    console.log(tabelleninhalt[i].Aktie);
                 }//end for
-
-               
+                //hier wird für jedes symbol die werte zugewiesen
+               this.fetchdata();
             }) //endthen
             .catch(error => {
                 // This is executed if there is an error:
@@ -66,15 +70,20 @@ class Table1 extends Component {
 
   }
   //für jedes Object bzw symbol in tabelleninhalt wwerden wert und veränderung hinzugefügt
-  fetchdata () {
+  async fetchdata () {
+     console.log('getht in fetch data rein');
+     console.log(tabelleninhalt.length);
     const pointer = this;
+  
    for( var i = 0; i < tabelleninhalt.length; i ++){
-        
+        console.log(i);
+        console.log('start durchlauf');
         symbol = tabelleninhalt[i].Aktie;
          var wert;
          var veränderung;
-        console.log(pointer);
-        axios.post(`http://${SERVER}:8080/fetch_data`, {
+         console.log(tabelleninhalt[i]);
+
+        await axios.post(`http://${SERVER}:8080/fetch_data`, {
             // definition of actual content that should be sned with post as JSON
             post_content: `{"symbol": "${symbol}", "time": "${time}"}`
         })
@@ -88,7 +97,8 @@ class Table1 extends Component {
                   var helpnumber2 = res.data.wert;
                   wert = helpnumber2 - 0;
                   wert = wert+"$"
-                  tabelleninhalt[i].Aktie = wert
+                  console.log(tabelleninhalt[i]);
+                  tabelleninhalt[i].Wert = wert
                   
                   var helpnumber = res.data.change
                   helpnumber = helpnumber *100;
@@ -104,12 +114,21 @@ class Table1 extends Component {
                 // This is executed if there is an error:
                 console.error(error)
             })
-        }
+         }
+        
         pointer.setState({
             sharedata: tabelleninhalt
             })
 
   }
+
+
+
+
+
+
+
+
     onButtonclicked(e) {
       console.log(e.target.id);
       history.push('/Stock?Aktie='+e.target.id);

@@ -3,14 +3,13 @@ import axios from 'axios';
 import Plot from 'react-plotly.js';
 
 
-
-
+//variablen um später symbol aus url auszulesen
+let url;
+var symbol;
 
 const SERVER = process.env.SERVER || "localhost";
 var time = "Daily";
-//symbol aus URL auslesen
-let url = window.location.href;
-var symbol = url.substring(34,url.length);
+
 
 class Stock extends React.Component {
 
@@ -24,11 +23,15 @@ class Stock extends React.Component {
         }
     
     componentDidMount() {
+       
         this.fetchdata()
         
     }
 
     fetchdata() {
+        
+        url = window.location.href;
+        symbol = url.substring(34,url.length);
         const pointer = this;
         let stockChartXValuesFunction = [];
         let stockChartYValuesFunction = [];
@@ -75,6 +78,8 @@ class Stock extends React.Component {
         console.log('er geht rein');
       }  
     renderPlot() {
+        url = window.location.href;
+        symbol = url.substring(34,url.length);
         return(<Plot
             data={[
                 {

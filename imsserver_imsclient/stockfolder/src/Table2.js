@@ -11,7 +11,7 @@ class Table2 extends Component {
        super(props) //since we are extending class Table so we have to use super in order to override Component class constructor
        this.state = { //state is by default an object
           sharedata: [
-             { Aktie: "-", Wert: "-", Veränderung: "-" },
+             { Aktie: "-", Anzahl: "-",Gesamtwert: "-", Gesamtveränderung: "-" },
              
           ]
        }
