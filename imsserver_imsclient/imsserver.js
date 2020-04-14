@@ -44,12 +44,17 @@ app.get('/request_info', (req, res) => {
     res.send('This is all I got from the request:' + JSON.stringify(req.headers));
 });
 
-// POST Path - call it with: POST http://localhost:8080/client_post
+//Anfrage für Kauf und Verkauf
+//Wenn es sich um einen Kauf handelt muss in reqest bei dem Attribut Transaktionsart "Kauf" mitgegeben werden
+//Wenn es sich um einen Verkauf handelt gilt selbiges mit "Verkauf"
+//Was in den verschiedenen Fällen noch mitgegeben werden muss ist vor den jeweiligen Codabschnitten aufgeschlüsselt
 app.post('/transaction', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
         var post_content = req.body.post_content;
         var post_content_json = JSON.parse(post_content);
-         //wenn Aktienkauf
+        
+        //Aktienkauf
+        // 
         if(post_content_json['Transaktionsart'] == "Kauf") {
           axios.post(`http://${SERVER}:8080/client_post`, {
             post_content: `{"Abbuchung":[{"Kontonummer":${post_content_json['Kontonummer']},"Betrag":${post_content_json['Betrag']}}] }`
@@ -103,8 +108,40 @@ app.post('/transaction', (req, res) => {
                 console.error(error)
             })
         }
-        if(post_content_json['Transaktionsart'] == "Verkauf") {
 
+        //Aktienverkauf
+        //Hier werden zunächst die Daten auf der DB von IMS aktuallisieret
+        //Wenn das erfolgreich war wird eine Anfrage gegen die Bank API mit einer Gutschrift in Höhe des Betrags gestellt
+        //Hier werden die Werte die ab der übernächsten zeile Aufgelistet sind benötigt
+        if(post_content_json['Transaktionsart'] == "Verkauf") {
+          var anzahl = post_content_json['Anzahl'];
+          var verkaufspreis = post_content_json['Betrag'];
+          var kontonummer = post_content_json['Kontonummer'];
+          var depotID = post_content_json['DepotID'];
+          var aktie = post_content_json['Aktie'];
+
+          //Neuer Verkauf wird in DB aufgenommen
+          conn.query('INSERT INTO `Verkauf` (`VerkaufID`, `DepotID`, `Symbol`, `Anzahl`, `Verkaufspreis`) VALUES (NULL, '+depotID+', '+aktie+', '+anzahl+', '+verkaufspreis+')').then( rows => {
+            console.log(rows);
+          });
+          //Alte Anzahl laden
+          var anzahlAlt;
+          conn.query('Select Anzahl From Depotinhalt Where Symbol = ' + aktie).then(rows => {
+            anzahlAlt = rows[0].Anzahl;
+          });
+          var anzahlNeu = anzahlAlt - anzahl;
+          //Anzahl der Aktie in Depot wird aktuallisiert 
+          conn.query('Update Depotinhalt Set Anzahl = '+anzahlNeu+' Where Symbol = '+aktie).then(rows => {
+            console.log(rows);
+          });
+          //Gutschrift auf Konto
+          axios.post(`http://${SERVER}:8080/client_post`, {
+            post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
+            })
+            .then((res) => {
+                console.log(`statusCode: ${res.status}`)
+                console.log(res.data)
+            })
         }
        
         
@@ -141,6 +178,52 @@ app.post('/post_content', (req,res) => {
 }
 
 })
+
+
+//Abfrage von UserID, Password un DepotID beim Login. Die Vorgehensweise nicht nicht sicher und daher völlig realitätsfremd. Es wird dabei auch nicht
+//Verschlüsselt. Es gilt mehr als eine Identifikation mit welchem User gerade gearbeitet werden möchte.
+//Benötigt bei einer Anfrage als post_content ein json mit einer Variablen username. (ersten drei Zeilen nach app.post)
+//Wenn Abfrage erfolgreich json mit {message:'', UserID: , Password: , DepotID: }
+//Wenn Abfrage fehlgeschlagen json mit selben Werten aber nur Message ist entsprechend gefüllt, der Rest ist null
+app.post('/login', (req, res) => {
+  var post_content = req.body.post_content;
+  var post_content_json = JSON.parse(post_content);
+  conn.query('Select UserID, Password From User Where Username = '+post_content_json['username']).then( rows => {
+    if(rows[0] != null){
+      console.log('Anfrage nach UserID und Passwort erfolgreich: ' + rows[0].UserID + ', ' + rows[0].Password);
+      conn.query('Select DepotID From Depot Where UserID = ' + rows[0].UserID).then( rowsDepot => {
+        if(rowsDepot[0].DepotID != null){
+          console.log('Anfrage nach DepotID erfolgreich: ' + rowsDepot[0].DepotID);
+          res.statusCode(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID})
+        }
+        else{
+          console.log('Fehler bei Anfrage nach DepotID.');
+          res.statusCode(200).json({message: 'The User do not have an Depot! Before logging in this is needed!', UserID: null, Password: null, DepotID: null});
+        }
+      });
+    }
+    else{
+      console.log('Fehler bei Anfrage nach UserID und Passwort.');
+      res.statusCode(200).json({message:'This User could not be found in System!', UserID: null, Password: null, DepotID: null});
+    }
+  });
+});
+
+//Abfrage aller angebotenen Aktien
+//Wenn Abfrage erfolgreich wird json Objekt von Datenbank direkt - ohne umstrukturierung - weiter gegeben
+//Wenn Abfrage erfolglos wird json mit message attribut und einem entsprechenden Wert zurückgegeben
+app.post('/fetch_stocksymbols', (req, res) => {
+  conn.query('Select * From Sharesymbols').then( rows => {
+    if(rows != null){
+      console.log('Anfrage nach allen Aktien erfolgreich!');
+      res.statusCode(200).json(rows);
+    }
+    else{
+      console.log('Fehler bei Anfrage nach allen Aktien!');
+      res.statusCode(200).json({message:'Query not succsessful. Please try again!'});
+    }
+  });
+});
 
 app.post('/fetch_data', (req, res) => {
   if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
