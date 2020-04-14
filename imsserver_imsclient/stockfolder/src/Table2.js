@@ -82,7 +82,7 @@ class Table2 extends Component {
  
      render() {
         return (
-           <div>
+           <div div id='main'>
               <table id='sharedata'>
                  <tbody>
                     <tr>{this.renderTableHeader()}</tr>

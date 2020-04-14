@@ -7,7 +7,10 @@ class HomeApp extends React.Component {
         return(
             <div>
                 
-                <div>
+                <div >
+                <br>
+                </br>
+                <br></br>
                 <h2>Aktuelle Kurse</h2>
                 <Table1></Table1>
                 </div>

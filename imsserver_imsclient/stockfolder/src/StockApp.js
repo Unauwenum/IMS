@@ -24,6 +24,7 @@ class StockApp extends React.Component {
   render() {
     return (
       <div className='app'>
+        <br></br>
         <Stock></Stock>
         <Table></Table>
         <button onClick={this.togglePopup.bind(this)}>show popup</button>

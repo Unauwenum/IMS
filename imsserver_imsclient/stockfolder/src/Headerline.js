@@ -1,4 +1,5 @@
 import React from 'react';
+import history from './history';
 
 class Headerline extends React.Component {
     render() {
@@ -12,7 +13,7 @@ class Headerline extends React.Component {
             <p class="headerElements" id="pVeränderungHeader">--</p>
             <p class="headerElements">Angemeldet als:</p>
             <p class="headerElements" id="pAngemeldetHeader">--</p> 
-            <input type="button" class="headerElements"  id="btnAbmelden" value="Abmelden"></input>
+            <input type="button" class="headerElements"  id="btnAbmelden" value="Abmelden" onClick={() => history.push('/')}></input>
                 
             </div>
             

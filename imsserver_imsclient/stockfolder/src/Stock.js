@@ -8,7 +8,10 @@ import Plot from 'react-plotly.js';
 
 const SERVER = process.env.SERVER || "localhost";
 var time = "Daily";
-var symbol = "IBM"
+//symbol aus URL auslesen
+let url = window.location.href;
+var symbol = url.substring(34,url.length);
+
 class Stock extends React.Component {
 
     constructor(props) {

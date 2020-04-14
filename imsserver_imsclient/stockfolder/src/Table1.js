@@ -137,7 +137,7 @@ class Table1 extends Component {
  
      render() {
         return (
-           <div>
+           <div id='uebersicht'>
               <table id='sharedata'>
                  <tbody>
                     <tr>{this.renderTableHeader()}</tr>

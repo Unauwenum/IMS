@@ -172,7 +172,6 @@ app.post('/fetch_data', (req, res) => {
               
                 influxdb.query(`select * from RealtimeShares Where symbol = '${symbol}' AND time >= '${dataobj}'`)
                 .then(result=> {
-
                  
                   //wenn result leer wird wert aus den letzen beiden Dailyshares berechnet, wenn er nicht leer ist wird wert aus aktuellem und vortageswert berechnet
                   if(result[0] != undefined) {
@@ -182,7 +181,6 @@ app.post('/fetch_data', (req, res) => {
                     //vortageswert wird abgefragt
                     influxdb.query(`select * from DailyShares Where symbol = '${symbol}' AND time >= '${dataobj}' - 4d`)
                     .then(result => {
-                      
                       var close2 = result[result.length-1].close;
                       changevalues.wert = open1;
                       changevalues.change = (open1/close2)-1
@@ -191,8 +189,9 @@ app.post('/fetch_data', (req, res) => {
                      
                     })
                   } else {
-                    influxdb.query(`select * from DailyShares Where symbol = '${symbol}' AND time >= now() - 5d`)
+                    influxdb.query(`select * from DailyShares Where symbol = '${symbol}' AND time >= now() - 7d`)
                     .then(result => {
+                      
                       var close1 = result[result.length-1].close;
                       var close2 = result[result.length-2].close;
                       changevalues.change = (close1/close2)-1;
