@@ -116,13 +116,32 @@ app.post('/transaction', (req, res) => {
         if(post_content_json['Transaktionsart'] == "Verkauf") {
           var anzahl = post_content_json['Anzahl'];
           var verkaufspreis = post_content_json['Betrag'];
-          var userID = post_content_json['UserID'];
+          var kontonummer = post_content_json['Kontonummer'];
           var depotID = post_content_json['DepotID'];
           var aktie = post_content_json['Aktie'];
 
-          conn.query('').then( rows => {
+          //Neuer Verkauf wird in DB aufgenommen
+          conn.query('INSERT INTO `Verkauf` (`VerkaufID`, `DepotID`, `Symbol`, `Anzahl`, `Verkaufspreis`) VALUES (NULL, '+depotID+', '+aktie+', '+anzahl+', '+verkaufspreis+')').then( rows => {
             console.log(rows);
           });
+          //Alte Anzahl laden
+          var anzahlAlt;
+          conn.query('Select Anzahl From Depotinhalt Where Symbol = ' + aktie).then(rows => {
+            anzahlAlt = rows[0].Anzahl;
+          });
+          var anzahlNeu = anzahlAlt - anzahl;
+          //Anzahl der Aktie in Depot wird aktuallisiert 
+          conn.query('Update Depotinhalt Set Anzahl = '+anzahlNeu+' Where Symbol = '+aktie).then(rows => {
+            console.log(rows);
+          });
+          //Gutschrift auf Konto
+          axios.post(`http://${SERVER}:8080/client_post`, {
+            post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
+            })
+            .then((res) => {
+                console.log(`statusCode: ${res.status}`)
+                console.log(res.data)
+            })
         }
        
         
@@ -160,12 +179,6 @@ app.post('/post_content', (req,res) => {
 
 })
 
-//Zum Testen
-app.post('/testen', (req, res) => {
-  axios.post(`http://${SERVER}:8080/transaction`, {
-    post_content: `{"Abbuchung": ,"Betrag": }`
-  });
-})
 
 //Abfrage von UserID, Password un DepotID beim Login. Die Vorgehensweise nicht nicht sicher und daher völlig realitätsfremd. Es wird dabei auch nicht
 //Verschlüsselt. Es gilt mehr als eine Identifikation mit welchem User gerade gearbeitet werden möchte.
