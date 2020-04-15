@@ -121,12 +121,12 @@ app.post('/transaction', (req, res, next) => {
         //Hier werden die Werte die ab der übernächsten zeile Aufgelistet sind benötigt
         if(post_content_json['Transaktionsart'] == "Verkauf") {
           console.log('geht hier rein');
+          var aktie = post_content_json['Aktie'];
           var anzahl = post_content_json['Anzahl'];
           var verkaufspreis = post_content_json['Betrag'];
           var kontonummer = post_content_json['Kontonummer'];
           var depotID = post_content_json['DepotID'];
-          var aktie = post_content_json['Aktie'];
-<<<<<<< HEAD
+
           mariadbcon.getConnection().then(conn => {
             //depotid aus UserID
           conn.query(`SELECT DepotID FROM Depot WHERE UserID = ${post_content_json['UserID']}`).then(rows =>  {
@@ -166,33 +166,6 @@ app.post('/transaction', (req, res, next) => {
          
           })//end Depotid
           })//endcon
-=======
-
-          mariadb.getConnection().then( conn => {
-            //Neuer Verkauf wird in DB aufgenommen
-            conn.query("INSERT INTO Verkauf (VerkaufID, DepotID, Symbol, Anzahl, Verkaufspreis) VALUES (NULL, '"+depotID+"', '"+aktie+"', '"+anzahl+"', '"+verkaufspreis+"')").then( rows => {
-              console.log(rows);
-            });
-            //Alte Anzahl laden
-            var anzahlAlt;
-            conn.query("Select Anzahl From Depotinhalt Where Symbol = '"+aktie+"'").then(rows => {
-              anzahlAlt = rows[0].Anzahl;
-            });
-            var anzahlNeu = anzahlAlt - anzahl;
-            //Anzahl der Aktie in Depot wird aktuallisiert 
-            conn.query("Update Depotinhalt Set Anzahl = '"+anzahlNeu+"' Where Symbol = '"+aktie+"'").then(rows => {
-              console.log(rows);
-            });
-            //Gutschrift auf Konto
-            axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
-              post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
-              })
-              .then((res) => {
-                  console.log(`statusCode: ${res.status}`)
-                  console.log(res.data)
-              })
-          });
->>>>>>> 0af66ed85df2961cea0882f11d7eb6f2a8a69ff1
         }
 
         //console.log("Client send 'post_content' with content:", post_content)
