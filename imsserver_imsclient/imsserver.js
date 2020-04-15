@@ -105,8 +105,11 @@ app.post('/transaction', (req, res, next) => {
 
                         
                       }) //end depotinhaltselect
-
+                      conn.end();
                 })
+                .catch(err => {
+                  conn.end();
+                });
               })//end mariadb.con
               }//end if 
             })
@@ -182,7 +185,11 @@ app.post('/transaction', (req, res, next) => {
           
          
           })//end Depotid
+          conn.end();
           })//endcon
+          .catch(err => {
+            conn.end();
+          });
         }
 
         //console.log("Client send 'post_content' with content:", post_content)
@@ -250,7 +257,11 @@ app.post('/login', (req, res) => {
       res.status(200).json({message:'This User could not be found in System!', UserID: null, Password: null, DepotID: null});
     }
   });
-});//end mariadbgetConnection
+  conn.end();
+})//end mariadbgetConnection
+.catch(err => {
+  conn.end();
+});
 });
 
 //Abfrage aller angebotenen Aktien
@@ -270,7 +281,11 @@ app.post('/fetch_stocksymbols', (req, res) => {
       res.status(200).json({message:'Query not succsessful. Please try again!'});
     }
   });
-}); //end get Conn
+  conn.end();
+}) //end get Conn
+.catch(err => {
+  conn.end();
+});
 });
 //Funktion übergibt den Depotinhalt mittels der Depotid
 app.post('/fetch_depotinhalt', (req, res) => {
@@ -285,7 +300,11 @@ app.post('/fetch_depotinhalt', (req, res) => {
               res.status(200).json(rows);
               
             })
+            conn.end();
           })
+          .catch(err => {
+            conn.end();
+          });
 
 
 
@@ -540,7 +559,11 @@ mariadbcon.getConnection().then(conn =>  {
 
 
 });
-}); //end con
+conn.end();
+}) //end con
+.catch(err => {
+  conn.end();
+});
 influxdb.getDatabaseNames().then(function(value) {
     console.log('Connected Influx')
     //wenn das erste mal gestartet muss Datenbank eingerichtet werden
