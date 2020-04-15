@@ -1,4 +1,4 @@
-// ** setTimeout(function () {
+ setTimeout(function () {
 
 
 'use strict';
@@ -15,7 +15,7 @@ var mysql = require('mysql')
 // ** als container: host: "banksqldb"
 // ** als normalerserver: localhost
 var verbindung = mysql.createConnection({
-  host: "localhost",
+  host: "banksqldb",
   user: "secureuser",
   password: "securepassword",
   database: "bankdb"
@@ -191,7 +191,7 @@ app.listen(PORT, HOST)
 console.log(`Running on http://${HOST}:${PORT}`);
 
 
-// **  }, 20000)
+ }, 20000)
 
 
 

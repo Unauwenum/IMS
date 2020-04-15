@@ -1,3 +1,4 @@
+setTimeout(function () {
 'use strict';
 
 const express = require('express');
@@ -389,7 +390,7 @@ console.log(`Running on http://${HOST}:${PORT}`);
 //Aufbauen verbindung Influxdb
 const InfluxDB = require('influx');
 const influxdb = new InfluxDB.InfluxDB({
-    host  : "localhost",
+    host  : "influxdb-development",
     //port  : "8086",
    database : "aktiendb"
   })
@@ -398,10 +399,10 @@ const influxdb = new InfluxDB.InfluxDB({
 
 const mariadb = require('mariadb');
 var mariadbcon = mariadb.createPool({
-  host: "localhost",
+  host: "mysql-development",
   user: "secureuser",
   password: "securepassword",
-  port: 3308,
+  port: 3306,
   database: "imsdb"
 })
 
@@ -551,7 +552,7 @@ influxdb.getDatabaseNames().then(function(value) {
       })
 
 
-
+}, 25000)
 /*
 var sqltestuser = 
 var sqltestdepot =

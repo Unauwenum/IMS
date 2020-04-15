@@ -1,0 +1,112 @@
+version: '3'
+
+services:
+    datadelivery:
+        build: ims-container
+        depends_on:
+            - influxdb-development
+            - mysql-development
+        links:
+                - "influxdb-development"
+                - "mysql-development"
+        command: node datadelivery.js
+        ports:
+            - "8090:8090"
+
+    imsserver:
+        build: imsserver_imsclient
+        container_name: imsservercontainer
+        depends_on:
+            - influxdb-development
+            - mysql-development
+        links:
+                - "influxdb-development"
+                - "mysql-development"
+    #volumes:
+    #  - ./:/usr/src/app
+        environment:
+            - BANKSERVER=bankserver
+        command: node imsserver.js
+        ports:
+              - "8080:8080"
+    influxdb-development:
+        container_name: my_influxdb
+        image: influxdb
+        environment:
+                INFLUXDB_ADMIN_USER: secureuser
+                INFLUXDB_ADMIN_PASSWORD: securepassword
+        restart: always
+        ports:
+            - "8086:8086"
+        volumes:
+                - influxdb-volume:/var/lib/influxdb
+    mysql-development:
+        container_name: mariadb
+        image: mariadb
+        environment:
+                MYSQL_USER: secureuser
+                MYSQL_PASSWORD: securepassword
+                MYSQL_ROOT_PASSWORD: securepassword
+                MYSQL_DATABASE: imsdb
+        ports:
+            - "3308:3306"  
+        volumes:
+                - mysqldb-volume:/var/lib/mysql
+    bankserver:
+        build: bankserver 
+        container_name: bankserver
+        command: node bankserver.js
+        ports:
+            - "8103:8103"
+        links:
+            - "banksqldb"
+        depends_on:
+            - banksqldb
+
+    banksqldb:
+        image: mysql:5.7
+        restart: always 
+        environment:
+            MYSQL_DATABASE: bankdb
+            MYSQL_USER: secureuser
+            MYSQL_PASSWORD: securepassword
+            MYSQL_RANDOM_ROOT_PASSWORD: '1'
+        ports: 
+            - "3306:3306"
+        volumes:
+            - bankdb:/var/lib/mysqlbank
+
+    reactjs:
+        container_name: reactjs
+        build: stockfolder
+        volumes:
+            - '.:/app'
+            - '/app/node_modules'
+        ports:
+            - 3000:3000
+        environment:
+            - CHOKIDAR_USEPOLLING=true
+            - SERVER = imsserver
+        tty: true
+        stdin_open: true
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadminsuite
+        volumes:
+                - /sessions
+        ports:
+                - 8091:80
+        environment:
+                - PMA_ARBITRARY=1
+        depends_on:
+                - mysql-development    
+                
+     
+volumes:
+    influxdb-volume:
+    mysqldb-volume:
+    bankdb: 
+    
+            
+
