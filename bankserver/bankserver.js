@@ -150,8 +150,10 @@ app.post('/Kauf', (req, res) => {
 // **** Verkauf****
 app.post('/Verkauf', (req, res) => {
 
-  var obj = JSON.parse('{"Gutschreibung":[{"Kontonummer":111,"Betrag":170}]}');
-
+  //var obj = JSON.parse('{"Gutschreibung":[{"Kontonummer":111,"Betrag":170}]}');
+  console.log(req.body.post_content);
+  var post_content = req.body.post_content;
+  var obj = JSON.parse(post_content);
   console.log("Zubuchungsbetrag: " + obj.Gutschreibung[0].Betrag);
   verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr = " + obj.Gutschreibung[0].Kontonummer, function (err, result, fields) {
     if (err) throw err;

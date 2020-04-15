@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import axios from 'axios';
 import mycookie from './Cookie';
-import Popup from './Popup';
+import Popup from './Popup2';
+import history from './history';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol = "IBM";
@@ -16,6 +17,7 @@ class Table2 extends Component {
        super(props) //since we are extending class Table so we have to use super in order to override Component class constructor
        this.state = { //state is by default an object
          showPopup: false, 
+         verkaufaktie: "", //dieses Attribut wird beim Popupstart mitgegeben
          sharedata: [
              { Aktie: "-", Anzahl: "-",Gesamtwert: "-", Veränderung: "-" },
              
@@ -27,11 +29,20 @@ class Table2 extends Component {
       this.fetchdepotinhalt()
       
   }
-  togglePopup() {
+  //Aktie aus dem Button wird ausgelesen
+  togglePopupup(e) {
+   console.log('event: '+JSON.stringify(e));
    this.setState({
+     verkaufaktie: e,
      showPopup: !this.state.showPopup
    });
  }
+  togglePopupdown() {
+   this.setState({
+      showPopup: !this.state.showPopup
+   });
+   this.fetchdepotinhalt();
+  }
 
 
   fetchdepotinhalt() {
@@ -143,7 +154,7 @@ class Table2 extends Component {
                  <td>{Anzahl}</td>
                  <td>{Gesamtwert}</td>
                  <td>{Veränderung}</td>
-                 <td><button id = {Aktie} value = {Anzahl} onClick={this.togglePopup.bind(this)} >Verkaufen</button></td>
+                 <td><button id = {Aktie} value = {Anzahl} onClick={this.togglePopupup.bind(this, {Aktie})} >Verkaufen</button></td>
                 
               </tr>
            )
@@ -167,8 +178,8 @@ class Table2 extends Component {
               </table>
               {this.state.showPopup ? 
             <Popup
-            text='Close Me'
-            closePopup={this.togglePopup.bind(this)}
+            aktie={this.state.verkaufaktie}
+            closePopup={this.togglePopupdown.bind(this)}
             />
             : null
           }

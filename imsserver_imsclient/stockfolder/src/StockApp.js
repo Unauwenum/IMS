@@ -27,11 +27,11 @@ class StockApp extends React.Component {
         <br></br>
         <Stock></Stock>
         <Table></Table>
-        <button onClick={this.togglePopup.bind(this)}>show popup</button>
+        <button onClick={this.togglePopup.bind(this)}>Aktie kaufen</button>
         <button onClick={() => history.push('/Home')}>Zurück zur Depotübersicht</button>
         {this.state.showPopup ? 
           <Popup
-            text='Close Me'
+            
             closePopup={this.togglePopup.bind(this)}
           />
           : null

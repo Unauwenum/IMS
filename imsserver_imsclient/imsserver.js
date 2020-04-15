@@ -72,16 +72,19 @@ app.post('/transaction', (req, res, next) => {
                   var sqlinsertkauf = "INSERT INTO `Kauf` (`KaufID`, `DepotID`, `Symbol`, `Anzahl`, `Kaufpreis`) VALUES (NULL, '"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"', '"+post_content_json['Betrag']+"') ";
                  
                       //Hat er bereits die Aktie?
-                      conn.query(`SELECT Symbol FROM Depotinhalt WHERE DepotID = ${DepotID}`).then(rows =>{
+                      conn.query(`SELECT * FROM Depotinhalt WHERE DepotID = '${DepotID}'`).then(rows =>{
+                        var helpbool = false;
                         for(var i = 0; i < rows.length; i++) {
-                          var helpsymbol = rows[i].symbol
-                          var helpbool = false;
+                          console.log('Inhalt rows'+rows[0]);
+                          var helpsymbol = rows[i].Symbol
+                          
+                          console.log('Diese Aktien hat er bereits'+helpsymbol);
                           if(helpsymbol == post_content_json['Aktie']) {
                             helpbool = true;
                           }
-
+                          }//end for
                           //wenn er die Aktie bereits hat --> Update Depotinhalt, insert Kauf , wenn nicht 2 Inserts
-                          if(helpbool){
+                          if(!helpbool){
                             var sqlinsertdepotinhalt = "INSERT INTO `Depotinhalt` (`DepotID`, `Symbol`, `Anzahl`) VALUES ('"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"') ";
                             conn.query(sqlinsertkauf).then(rows =>{ console.log('Es wurde ein Kauf in die DB aufgenommen')} )
                             conn.query(sqlinsertdepotinhalt).then(rows => { 
@@ -91,7 +94,7 @@ app.post('/transaction', (req, res, next) => {
                             
                           } else {
                             var sqlupdatedepotinhalt = "UPDATE Depotinhalt SET `Anzahl`=(`Anzahl`+"+post_content_json['Anzahl']+") WHERE `DepotID`="+DepotID+" AND `symbol`='"+post_content_json['Aktie']+"'";
-
+                            console.log(sqlupdatedepotinhalt);
                             conn.query(sqlinsertkauf).then(rows =>{ console.log('Es wurde ein Kauf in die DB aufgenommen')} );
                             conn.query(sqlupdatedepotinhalt).then(rows =>{
                               console.log('Es wurde der Depotinhalt aktualisiert')
@@ -100,7 +103,7 @@ app.post('/transaction', (req, res, next) => {
 
                           }
 
-                        }//end for
+                        
                       }) //end depotinhaltselect
 
                 })
@@ -117,40 +120,57 @@ app.post('/transaction', (req, res, next) => {
         //Wenn das erfolgreich war wird eine Anfrage gegen die Bank API mit einer Gutschrift in Höhe des Betrags gestellt
         //Hier werden die Werte die ab der übernächsten zeile Aufgelistet sind benötigt
         if(post_content_json['Transaktionsart'] == "Verkauf") {
+          console.log('geht hier rein');
           var anzahl = post_content_json['Anzahl'];
           var verkaufspreis = post_content_json['Betrag'];
           var kontonummer = post_content_json['Kontonummer'];
           var depotID = post_content_json['DepotID'];
           var aktie = post_content_json['Aktie'];
-
+          mariadbcon.getConnection().then(conn => {
+            //depotid aus UserID
+          conn.query(`SELECT DepotID FROM Depot WHERE UserID = ${post_content_json['UserID']}`).then(rows =>  {
+          var depotID = rows[0].DepotID;
           //Neuer Verkauf wird in DB aufgenommen
-          conn.query('INSERT INTO `Verkauf` (`VerkaufID`, `DepotID`, `Symbol`, `Anzahl`, `Verkaufspreis`) VALUES (NULL, '+depotID+', '+aktie+', '+anzahl+', '+verkaufspreis+')').then( rows => {
+          conn.query("INSERT INTO `Verkauf` (`VerkaufID`, `DepotID`, `Symbol`, `Anzahl`, `Verkaufspreis`) VALUES (NULL, '"+depotID+"', '"+aktie+"', '"+anzahl+"', '"+verkaufspreis+"')").then( rows => {
             console.log(rows);
-          });
-          //Alte Anzahl laden
-          var anzahlAlt;
-          conn.query('Select Anzahl From Depotinhalt Where Symbol = ' + aktie).then(rows => {
+
+            //Alte Anzahl laden
+            var anzahlAlt;
+            conn.query("Select Anzahl From Depotinhalt Where Symbol = '"+aktie+"'").then(rows => {
             anzahlAlt = rows[0].Anzahl;
+
+              var anzahlNeu = anzahlAlt - anzahl;
+             //Anzahl der Aktie in Depot wird aktuallisiert 
+               conn.query("Update Depotinhalt Set Anzahl = '"+anzahlNeu+"' Where Symbol = '"+aktie+"'").then(rows => {
+              console.log(rows);
+
+                  console.log('geht hier rein');
+                    //Gutschrift auf Konto
+                  axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
+                  post_content: `{"Gutschreibung":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
+                  })
+                  .then((resu) => {
+                      console.log(`statusCode: ${resu.status}`)
+                      console.log(resu.data)
+                      res.status(200).json({ message: resu.data});
+                  })
+
+              
+              });
+
+
           });
-          var anzahlNeu = anzahlAlt - anzahl;
-          //Anzahl der Aktie in Depot wird aktuallisiert 
-          conn.query('Update Depotinhalt Set Anzahl = '+anzahlNeu+' Where Symbol = '+aktie).then(rows => {
-            console.log(rows);
           });
-          //Gutschrift auf Konto
-          axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
-            post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
-            })
-            .then((res) => {
-                console.log(`statusCode: ${res.status}`)
-                console.log(res.data)
-            })
+          
+         
+          })//end Depotid
+          })//endcon
         }
        
         
 
 
-        console.log("Client send 'post_content' with content:", post_content)
+        //console.log("Client send 'post_content' with content:", post_content)
         // Set HTTP Status -> 200 is okay -> and send message
         
     }

@@ -76,7 +76,9 @@ class LoginApp extends React.Component {
 render() {
   return (
     <div className="Login">
+      
       <form onSubmit={this.handleSubmit}>
+      <h1>Willkommen bei IMS</h1>
         <label>
             User:
             <input type="text" value={this.state.user} onChange={this.handleChangeUser} />
