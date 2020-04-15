@@ -48,27 +48,29 @@ app.get('/request_info', (req, res) => {
 //Wenn es sich um einen Kauf handelt muss in reqest bei dem Attribut Transaktionsart "Kauf" mitgegeben werden
 //Wenn es sich um einen Verkauf handelt gilt selbiges mit "Verkauf"
 //Was in den verschiedenen Fällen noch mitgegeben werden muss ist vor den jeweiligen Codabschnitten aufgeschlüsselt
-app.post('/transaction', (req, res) => {
+app.post('/transaction', (req, res, next) => {
     if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
         var post_content = req.body.post_content;
         var post_content_json = JSON.parse(post_content);
-        
+        console.log("Client send 'post_content' with content:", post_content)
         //Aktienkauf
         // 
         if(post_content_json['Transaktionsart'] == "Kauf") {
-          axios.post(`http://${BANKSERVER}:8080/client_post`, {
+          axios.post(`http://${BANKSERVER}:8103/Kauf`, {
             post_content: `{"Abbuchung":[{"Kontonummer":${post_content_json['Kontonummer']},"Betrag":${post_content_json['Betrag']}}] }`
             })
-            .then((res) => {
-                console.log(`statusCode: ${res.status}`)
-                console.log(res.data)
+            .then(resul => {
+              console.log('geht hier rein');
+                console.log(`statusCode: ${resul.status}`)
+                console.log(resul.data)
                 //wenn genug Geld -->
                 var bool = true;
                 if(bool) {
-
-                  var sqlinsertkauf = "INSERT INTO `Kauf` (`KaufID`, `DepotID`, `Symbol`, `Anzahl`, `Kaufpreis`) VALUES (NULL, '"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"', '"+post_content_json['Betrag']+"') ";
+                  mariadbcon.getConnection().then(conn=>{
                   conn.query(`SELECT DepotID FROM Depot WHERE UserID = ${post_content_json['UserID']}`).then(rows =>  {
                   var DepotID = rows[0].DepotID;
+                  var sqlinsertkauf = "INSERT INTO `Kauf` (`KaufID`, `DepotID`, `Symbol`, `Anzahl`, `Kaufpreis`) VALUES (NULL, '"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"', '"+post_content_json['Betrag']+"') ";
+                 
                       //Hat er bereits die Aktie?
                       conn.query(`SELECT Symbol FROM Depotinhalt WHERE DepotID = ${DepotID}`).then(rows =>{
                         for(var i = 0; i < rows.length; i++) {
@@ -88,7 +90,7 @@ app.post('/transaction', (req, res) => {
                             })
                             
                           } else {
-                            var sqlupdatedepotinhalt = "UPDATE Depotinhalt SET `Anzahl`=(`Anzahl`+"+post_content_json['Anzahl']+") WHERE `DepotID`="+DepotID+" AND `symbol`="+post_content_json['Aktie']+"";
+                            var sqlupdatedepotinhalt = "UPDATE Depotinhalt SET `Anzahl`=(`Anzahl`+"+post_content_json['Anzahl']+") WHERE `DepotID`="+DepotID+" AND `symbol`='"+post_content_json['Aktie']+"'";
 
                             conn.query(sqlinsertkauf).then(rows =>{ console.log('Es wurde ein Kauf in die DB aufgenommen')} );
                             conn.query(sqlupdatedepotinhalt).then(rows =>{
@@ -102,10 +104,11 @@ app.post('/transaction', (req, res) => {
                       }) //end depotinhaltselect
 
                 })
+              })//end mariadb.con
               }//end if 
             })
             .catch((error) => {
-                console.error(error)
+             //   console.error(error)
             })
         }
 
@@ -135,7 +138,7 @@ app.post('/transaction', (req, res) => {
             console.log(rows);
           });
           //Gutschrift auf Konto
-          axios.post(`http://${SERVER}:8080/client_post`, {
+          axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
             post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
             })
             .then((res) => {
@@ -149,7 +152,7 @@ app.post('/transaction', (req, res) => {
 
         console.log("Client send 'post_content' with content:", post_content)
         // Set HTTP Status -> 200 is okay -> and send message
-        res.status(200).json({ message: 'I got your message: ' + post_content });
+        
     }
     else {
         // There is no body and post_contend
@@ -193,13 +196,13 @@ app.post('/login', (req, res) => {
   console.log('baut verbindung nocht nicht auf');
   mariadbcon.getConnection().then(conn=> {
     console.log('baut verbindung auf');
-  conn.query(`Select UserID, Password From User WHERE Username = '${post_content_json['username']}'`).then( rows => {
+  conn.query(`Select UserID, Password, Kontonummer From User WHERE Username = '${post_content_json['username']}'`).then( rows => {
     if(rows[0] != null){
       console.log('Anfrage nach UserID und Passwort erfolgreich: ' + rows[0].UserID + ', ' + rows[0].Password);
       conn.query('Select DepotID From Depot Where UserID = ' + rows[0].UserID).then( rowsDepot => {
         if(rowsDepot[0].DepotID != null){
           console.log('Anfrage nach DepotID erfolgreich: ' + rowsDepot[0].DepotID);
-          res.status(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID})
+          res.status(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID, Kontonummer: rows[0].Kontonummer})
         }
         else{
           console.log('Fehler bei Anfrage nach DepotID.');
@@ -234,6 +237,32 @@ app.post('/fetch_stocksymbols', (req, res) => {
   });
 }); //end get Conn
 });
+//Funktion übergibt den Depotinhalt mittels der Depotid
+app.post('/fetch_depotinhalt', (req, res) => {
+  if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
+    var post_content = req.body.post_content;
+          console.log(post_content);
+          var post_content_json = JSON.parse(post_content);
+          const DepotID = post_content_json['DepotID'];
+          mariadbcon.getConnection().then( conn=>{ 
+            conn.query("Select * From Depotinhalt Where DepotID='"+DepotID+"'").then(rows=>{
+              console.log(rows[0]);
+              res.status(200).json(rows);
+              
+            })
+          })
+
+
+
+
+
+  }else {
+      // There is no body and post_contend
+      console.error("Client send no 'post_content'")
+      //Set HTTP Status -> 400 is client error -> and send message
+      res.status(400).json({ message: 'This function requries a body with "post_content"' });
+  }
+})
 
 app.post('/fetch_data', (req, res) => {
   if (typeof req.body !== "undefined" && typeof req.body.post_content !== "undefined") {
@@ -321,9 +350,6 @@ app.use('/Stock', express.static('stock'));
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
 
-/**
- * Maxim Part
- */
 
 //Aufbauen verbindung Influxdb
 const InfluxDB = require('influx');
@@ -350,8 +376,8 @@ mariadbcon.getConnection().then(conn =>  {
     var sqluser = "CREATE TABLE `imsdb`.`User` ( `UserID` INT(8) NOT NULL AUTO_INCREMENT , `Username` VARCHAR(30) NOT NULL , `Password` VARCHAR(30) NOT NULL , `Kontonummer` INT(10) NOT NULL , PRIMARY KEY (`UserID`)) ENGINE = InnoDB; ";
     var sqldepot = "CREATE TABLE `imsdb`.`Depot` ( `UserID` INT(8) NOT NULL , `DepotID` INT(8) NOT NULL AUTO_INCREMENT , PRIMARY KEY (`DepotID`), UNIQUE (`UserID`)) ENGINE = InnoDB; "
     var sqldepotinhalt = "CREATE TABLE `imsdb`.`Depotinhalt` ( `DepotID` INT(8) NOT NULL , `Symbol` VARCHAR(10) NOT NULL , `Anzahl` INT(10) NOT NULL , PRIMARY KEY (`DepotID`, `Symbol`)) ENGINE = InnoDB; ";
-    var sqlkauf = "CREATE TABLE `imsdb`.`Kauf` ( `KaufID` INT(10) NOT NULL AUTO_INCREMENT , `DepotID` INT(8) NOT NULL , `Symbol` VARCHAR(10) NOT NULL , `Anzahl` INT(10) NOT NULL , `Kaufpreis` DOUBLE(30,5) NOT NULL , PRIMARY KEY (`KaufID`) , UNIQUE (`DepotID`, `Symbol`)) ENGINE = InnoDB; ";
-    var sqlverkauf = "CREATE TABLE `imsdb`.`Verkauf` ( `VerkaufID` INT(10) NOT NULL AUTO_INCREMENT , `DepotID` INT(8) NOT NULL , `Symbol` VARCHAR(10) NOT NULL , `Anzahl` INT(10) NOT NULL , `Verkaufspreis` DOUBLE(30,5) NOT NULL , PRIMARY KEY (`VerkaufID`) , UNIQUE (`DepotID`, `Symbol`)) ENGINE = InnoDB; "
+    var sqlkauf = "CREATE TABLE `imsdb`.`Kauf` ( `KaufID` INT(10) NOT NULL AUTO_INCREMENT , `DepotID` INT(8) NOT NULL , `Symbol` VARCHAR(10) NOT NULL , `Anzahl` INT(10) NOT NULL , `Kaufpreis` DOUBLE(30,5) NOT NULL , PRIMARY KEY (`KaufID`) ) ENGINE = InnoDB; ";//UNIQUE (`DepotID`, `Symbol`)
+    var sqlverkauf = "CREATE TABLE `imsdb`.`Verkauf` ( `VerkaufID` INT(10) NOT NULL AUTO_INCREMENT , `DepotID` INT(8) NOT NULL , `Symbol` VARCHAR(10) NOT NULL , `Anzahl` INT(10) NOT NULL , `Verkaufspreis` DOUBLE(30,5) NOT NULL , PRIMARY KEY (`VerkaufID`) ) ENGINE = InnoDB; "//UNIQUE (`DepotID`, `Symbol`)
 
 
     var sqldepotfs = "ALTER TABLE `Depot` ADD CONSTRAINT `UserID` FOREIGN KEY (`UserID`) REFERENCES `User`(`UserID`) ON DELETE RESTRICT ON UPDATE RESTRICT; ";

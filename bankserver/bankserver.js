@@ -4,6 +4,7 @@
 'use strict';
 
 const express = require('express');
+const cors = require('cors');
 
 // Constants
 const PORT = 8103;
@@ -71,7 +72,7 @@ verbindung.query("SHOW TABLES", function (err, result) {
     verbindung.query(sql, function (err, result) {
       if (err) throw err;
       console.log("Table Konto created");
-      sql = "INSERT into Konto (Knr, Kontostand, ID) VALUES (111, 2000.99, 111), (222, 5000, 222)";
+      sql = "INSERT into Konto (Knr, Kontostand, ID) VALUES (1111, 2000.99, 111), (2222, 5000, 222)";
       verbindung.query(sql, function (err, result) {
         if (err) throw err;
         console.log("Insert Konto erledigt");
@@ -99,13 +100,22 @@ setTimeout(function () {
 
 // App
 const app = express();
+app.use(cors());
+// Features for JSON Body
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 // **** Kauf****
-app.get('/Kauf', (req, res) => {
-
-  var obj = JSON.parse('{"Abbuchung":[{"Kontonummer":111,"Betrag":170}]}');
+app.post('/Kauf', (req, res) => {
+  console.log('Request'+req);
+  console.log('Request body'+req.body);
+  console.log(req.body.post_content);
+  var post_content = req.body.post_content;
+  var obj = JSON.parse(post_content);
+  //var obj = JSON.parse('{"Abbuchung":[{"Kontonummer":1111,"Betrag":170}]}');
   console.log("*** Abbuchungsbetrag: " + obj.Abbuchung[0].Betrag);
-  verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr = " + obj.Abbuchung[0].Kontonummer, function (err, result, fields) {
+  verbindung.query(" SELECT Kontostand FROM Konto WHERE Knr =  '"+obj.Abbuchung[0].Kontonummer+"'", function (err, result, fields) {
     if (err) throw err;
+    console.log(result);
     console.log("Kontostand vor Abbuchung: " + result[0].Kontostand);
 
     if (obj.Abbuchung[0].Betrag < result[0].Kontostand) {
@@ -138,7 +148,7 @@ app.get('/Kauf', (req, res) => {
 
 
 // **** Verkauf****
-app.get('/Verkauf', (req, res) => {
+app.post('/Verkauf', (req, res) => {
 
   var obj = JSON.parse('{"Gutschreibung":[{"Kontonummer":111,"Betrag":170}]}');
 

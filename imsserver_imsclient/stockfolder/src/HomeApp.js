@@ -3,6 +3,7 @@ import Table1 from './Table1';
 import Table2 from './Table2';
 
 class HomeApp extends React.Component {
+    
     render() {
         return(
             <div>

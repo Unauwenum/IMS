@@ -1,33 +1,94 @@
 import React, { Component } from 'react'
 import axios from 'axios';
-
+import mycookie from './Cookie';
+import Popup from './Popup';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
-var symbol = "IBM"
+var symbol = "IBM";
+var tabelleninhalt;
+var object;
 
+
+ 
 class Table2 extends Component {
     
     constructor(props) {
        super(props) //since we are extending class Table so we have to use super in order to override Component class constructor
        this.state = { //state is by default an object
-          sharedata: [
-             { Aktie: "-", Anzahl: "-",Gesamtwert: "-", Gesamtveränderung: "-" },
+         showPopup: false, 
+         sharedata: [
+             { Aktie: "-", Anzahl: "-",Gesamtwert: "-", Veränderung: "-" },
              
           ]
        }
     }
 
     componentDidMount() {
-      this.fetchdata()
+      this.fetchdepotinhalt()
       
   }
-  fetchdata () {
+  togglePopup() {
+   this.setState({
+     showPopup: !this.state.showPopup
+   });
+ }
 
+
+  fetchdepotinhalt() {
+    
    const pointer = this;
+        
+       object = new Object();
+       tabelleninhalt = [];
+        var wert;
+        var veränderung;
+       console.log(pointer);
+       axios.post(`http://${SERVER}:8080/fetch_depotinhalt`, {
+           // definition of actual content that should be sned with post as JSON
+           post_content: `{ "DepotID": "${mycookie.depotid}"}`
+       })
+           .then(res => {
+               // This is executed if the server returns an answer:
+               // Status code represents: https://de.wikipedia.org/wiki/HTTP-Statuscode
+               console.log(`statusCode: ${res.status}`)
+               // Print out actual data:
+               //alles symbole in einem Array
+               console.log('hier kommt das resultat aus der 1. Anfrage')
+               console.log(res.data);
+               for ( var i = 0; i < res.data.length; i++) {
+                
+                   object = new Object();
+                   object.Aktie = res.data[i].Symbol
+                   object.Anzahl = res.data[i].Anzahl
+                   tabelleninhalt[i] = object
+                   console.log(tabelleninhalt[i].Anzahl);
+                   console.log(tabelleninhalt[i].Aktie);
+               }//end for
+               //hier wird für jedes symbol die werte zugewiesen
+              this.fetchdata();
+           }) //endthen
+           .catch(error => {
+               // This is executed if there is an error:
+               console.error(error)
+           })
+
+   }//end fetchdepotinhalt
+
+    //für jedes Object bzw symbol in tabelleninhalt wwerden wert und veränderung hinzugefügt
+   //in diesem Fall werden die Werte mit der Anzahl multipliziert
+  async fetchdata () {
+     console.log('getht in fetch data rein');
+     console.log(tabelleninhalt.length);
+    const pointer = this;
+  
+   for( var i = 0; i < tabelleninhalt.length; i ++){
+    
+        symbol = tabelleninhalt[i].Aktie;
          var wert;
          var veränderung;
-        console.log(pointer);
-        axios.post(`http://${SERVER}:8080/fetch_data`, {
+         console.log(tabelleninhalt[i]);
+
+        await axios.post(`http://${SERVER}:8080/fetch_data`, {
             // definition of actual content that should be sned with post as JSON
             post_content: `{"symbol": "${symbol}", "time": "${time}"}`
         })
@@ -36,21 +97,25 @@ class Table2 extends Component {
                 // Status code represents: https://de.wikipedia.org/wiki/HTTP-Statuscode
                 console.log(`statusCode: ${res.status}`)
                 // Print out actual data:
-                console.log(res.data)
-                console.log(res.data.wert)
+             
                   var helpnumber2 = res.data.wert;
-                  wert = helpnumber2 - 0;
-                  wert = wert+"$";
+                  wert = helpnumber2 - 0
+                  //wert mal Anzahl ergibt den Gesamtwert
+                  console.log('anzahl:'+tabelleninhalt[i].Anzahl);
+                  console.log(wert);
+                  wert = wert * tabelleninhalt[i].Anzahl
+                  console.log(wert);
+                  wert = wert+"$"
+                  console.log(tabelleninhalt[i]);
+                  tabelleninhalt[i].Gesamtwert = wert
                   
                   var helpnumber = res.data.change
                   helpnumber = helpnumber *100;
                   veränderung = helpnumber.toFixed(2);
                   veränderung = veränderung +'%';
-                  pointer.setState({
-                     sharedata: [{Aktie: symbol,
-                     Wert: wert,
-                     Veränderung: veränderung}]
-                 })
+                  tabelleninhalt[i].Veränderung = veränderung;
+                  
+                  
 
                
             })
@@ -58,16 +123,27 @@ class Table2 extends Component {
                 // This is executed if there is an error:
                 console.error(error)
             })
+         }
+        
+        pointer.setState({
+            sharedata: tabelleninhalt
+            })
 
   }
+
+    onButtonVerkaufclicked(e) {
+       
+    }
     renderTableData() {
         return this.state.sharedata.map((sharedata, index) => {
-           const { Aktie, Wert, Veränderung } = sharedata //destructuring
+           const { Aktie, Anzahl, Gesamtwert, Veränderung } = sharedata //destructuring
            return (
               <tr key={Aktie}>
                  <td>{Aktie}</td>
-                 <td>{Wert}</td>
+                 <td>{Anzahl}</td>
+                 <td>{Gesamtwert}</td>
                  <td>{Veränderung}</td>
+                 <td><button id = {Aktie} value = {Anzahl} onClick={this.togglePopup.bind(this)} >Verkaufen</button></td>
                 
               </tr>
            )
@@ -89,6 +165,13 @@ class Table2 extends Component {
                     {this.renderTableData()}
                  </tbody>
               </table>
+              {this.state.showPopup ? 
+            <Popup
+            text='Close Me'
+            closePopup={this.togglePopup.bind(this)}
+            />
+            : null
+          }
            </div>
         )
      }

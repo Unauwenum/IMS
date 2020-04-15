@@ -16,7 +16,7 @@ class LoginApp extends React.Component {
                 password: "",
                 depotid: "1",
                 userid: "1",
-                kontonummer: "111",
+                kontonummer: "1111",
                 loggedin: false
             }
             this.handleChangePassword = this.handleChangePassword.bind(this);
@@ -55,9 +55,11 @@ class LoginApp extends React.Component {
                     userid: res.data.userid,
                     depotid: res.data.depotid
                 })
-                mycookie.loggedin = res.data.status;
-                mycookie.userid = res.data.userid;
-                mycookie.depotid = res.data.depotid;
+                mycookie.loggedin = this.state.loggedin;
+                mycookie.userid = res.data.UserID;
+                mycookie.depotid = res.data.DepotID;
+                mycookie.kontonummer = res.data.Kontonummer;
+                console.log(mycookie);
                 history.push('/Home')
                 } else {// end if 
                   alert('LoginFailed Incorrect password');

@@ -6,8 +6,6 @@ const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol = "IBM"
 var wert;
-var Kontonummer = mycookie.kontonummer;
-const UserID = mycookie.userid;
 
 class Popup extends React.Component {
     constructor(props) {
@@ -52,6 +50,9 @@ class Popup extends React.Component {
       })
     }
     onKaufClicked() {
+    console.log(mycookie);
+    var Kontonummer = mycookie.kontonummer;
+    const UserID = mycookie.userid;
       //einfache Eingabeprüfung auf Integer
       if(Number.isInteger(this.state.buydata.Anzahl)){
       axios.post(`http://${SERVER}:8080/transaction`, {
