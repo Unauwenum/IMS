@@ -4,7 +4,7 @@ import Table from './Table';
 import Popup from './Popup';
 import history from './history';
 import './App.css';
-
+import Headerline from './Headerline';
 
 
 
@@ -24,6 +24,7 @@ class StockApp extends React.Component {
   render() {
     return (
       <div className='app'>
+        <Headerline></Headerline>
         <br></br>
         <Stock></Stock>
         <Table></Table>

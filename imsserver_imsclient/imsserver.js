@@ -142,9 +142,10 @@ app.post('/transaction', (req, res, next) => {
 
               var anzahlNeu = anzahlAlt - anzahl;
               //wenn anzahlNeu = 0 soll nicht anzahl auf 0 aktualisiert werden, sondern der Datensatz gelöscht
-              if(anzahlNeu = 0){
+              console.log('Anzahlneu'+anzahlNeu);
+              if(anzahlNeu == 0){
                 //Datensatz löschen
-               conn.query("Delete From Depotinhalt Where Symbol = '"+aktie+"'").then(rows => {
+               conn.query("Delete From Depotinhalt Where Symbol = '"+aktie+"' AND DepotID ='"+depotID+"'").then(rows => {
                 console.log(rows);
   
                     console.log('geht hier rein');

@@ -59,6 +59,7 @@ class LoginApp extends React.Component {
                 mycookie.userid = res.data.UserID;
                 mycookie.depotid = res.data.DepotID;
                 mycookie.kontonummer = res.data.Kontonummer;
+                mycookie.username  = this.state.user;
                 console.log(mycookie);
                 history.push('/Home')
                 } else {// end if 

@@ -1,13 +1,19 @@
 import React from 'react';
 import Table1 from './Table1';
 import Table2 from './Table2';
-
+import Headerline from './Headerline';
+import mycookie from './Cookie';
 class HomeApp extends React.Component {
+
+    componentDidMount(){
+        
+    }
     
     render() {
+        
         return(
             <div>
-                
+                <Headerline></Headerline>
                 <div >
                 <br>
                 </br>

@@ -1,6 +1,7 @@
 const mycookie = new Object();
         mycookie.loggedin = false;;
-        mycookie.userid = "1";
-        mycookie.depotid = "1111";
+        mycookie.userid = "";
+        mycookie.depotid = "";
+        mycookie.username = "";
         
 export default mycookie;

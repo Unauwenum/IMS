@@ -27,7 +27,7 @@ class App extends React.Component {
     return (
     <Router history={history}>
         <div>
-          <Headerline></Headerline>
+          
           <hr />
           <Switch>
               <Route exact path='/' component={LoginApp} />

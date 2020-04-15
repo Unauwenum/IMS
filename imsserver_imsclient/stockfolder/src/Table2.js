@@ -5,7 +5,7 @@ import Popup from './Popup2';
 import history from './history';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
-var symbol = "IBM";
+var symbol;
 var tabelleninhalt;
 var object;
 
