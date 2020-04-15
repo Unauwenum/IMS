@@ -141,25 +141,41 @@ app.post('/transaction', (req, res, next) => {
             anzahlAlt = rows[0].Anzahl;
 
               var anzahlNeu = anzahlAlt - anzahl;
-             //Anzahl der Aktie in Depot wird aktuallisiert 
+              //wenn anzahlNeu = 0 soll nicht anzahl auf 0 aktualisiert werden, sondern der Datensatz gelöscht
+              if(anzahlNeu = 0){
+                //Datensatz löschen
+               conn.query("Delete From Depotinhalt Where Symbol = '"+aktie+"'").then(rows => {
+                console.log(rows);
+  
+                    console.log('geht hier rein');
+                      //Gutschrift auf Konto
+                    axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
+                    post_content: `{"Gutschreibung":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
+                    })
+                    .then((resu) => {
+                        console.log(`statusCode: ${resu.status}`)
+                        console.log(resu.data)
+                        res.status(200).json({ message: resu.data});
+                    })
+                });
+              }
+              else{
+                //Anzahl der Aktie in Depot wird aktuallisiert 
                conn.query("Update Depotinhalt Set Anzahl = '"+anzahlNeu+"' Where Symbol = '"+aktie+"'").then(rows => {
-              console.log(rows);
-
-                  console.log('geht hier rein');
-                    //Gutschrift auf Konto
-                  axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
-                  post_content: `{"Gutschreibung":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
-                  })
-                  .then((resu) => {
-                      console.log(`statusCode: ${resu.status}`)
-                      console.log(resu.data)
-                      res.status(200).json({ message: resu.data});
-                  })
-
-              
-              });
-
-
+                console.log(rows);
+  
+                    console.log('geht hier rein');
+                      //Gutschrift auf Konto
+                    axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
+                    post_content: `{"Gutschreibung":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
+                    })
+                    .then((resu) => {
+                        console.log(`statusCode: ${resu.status}`)
+                        console.log(resu.data)
+                        res.status(200).json({ message: resu.data});
+                    })
+                });
+              }
           });
           });
           
