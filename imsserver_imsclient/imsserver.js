@@ -123,32 +123,31 @@ app.post('/transaction', (req, res, next) => {
           var depotID = post_content_json['DepotID'];
           var aktie = post_content_json['Aktie'];
 
-          //Neuer Verkauf wird in DB aufgenommen
-          conn.query('INSERT INTO `Verkauf` (`VerkaufID`, `DepotID`, `Symbol`, `Anzahl`, `Verkaufspreis`) VALUES (NULL, '+depotID+', '+aktie+', '+anzahl+', '+verkaufspreis+')').then( rows => {
-            console.log(rows);
+          mariadb.getConnection().then( conn => {
+            //Neuer Verkauf wird in DB aufgenommen
+            conn.query("INSERT INTO Verkauf (VerkaufID, DepotID, Symbol, Anzahl, Verkaufspreis) VALUES (NULL, '"+depotID+"', '"+aktie+"', '"+anzahl+"', '"+verkaufspreis+"')").then( rows => {
+              console.log(rows);
+            });
+            //Alte Anzahl laden
+            var anzahlAlt;
+            conn.query("Select Anzahl From Depotinhalt Where Symbol = '"+aktie+"'").then(rows => {
+              anzahlAlt = rows[0].Anzahl;
+            });
+            var anzahlNeu = anzahlAlt - anzahl;
+            //Anzahl der Aktie in Depot wird aktuallisiert 
+            conn.query("Update Depotinhalt Set Anzahl = '"+anzahlNeu+"' Where Symbol = '"+aktie+"'").then(rows => {
+              console.log(rows);
+            });
+            //Gutschrift auf Konto
+            axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
+              post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
+              })
+              .then((res) => {
+                  console.log(`statusCode: ${res.status}`)
+                  console.log(res.data)
+              })
           });
-          //Alte Anzahl laden
-          var anzahlAlt;
-          conn.query('Select Anzahl From Depotinhalt Where Symbol = ' + aktie).then(rows => {
-            anzahlAlt = rows[0].Anzahl;
-          });
-          var anzahlNeu = anzahlAlt - anzahl;
-          //Anzahl der Aktie in Depot wird aktuallisiert 
-          conn.query('Update Depotinhalt Set Anzahl = '+anzahlNeu+' Where Symbol = '+aktie).then(rows => {
-            console.log(rows);
-          });
-          //Gutschrift auf Konto
-          axios.post(`http://${BANKSERVER}:8103/Verkauf`, {
-            post_content: `{"Gutschrift":[{"Kontonummer":`+kontonummer+`,"Betrag": `+verkaufspreis+`}] }`
-            })
-            .then((res) => {
-                console.log(`statusCode: ${res.status}`)
-                console.log(res.data)
-            })
         }
-       
-        
-
 
         console.log("Client send 'post_content' with content:", post_content)
         // Set HTTP Status -> 200 is okay -> and send message
