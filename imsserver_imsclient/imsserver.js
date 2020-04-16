@@ -91,6 +91,7 @@ app.post('/transaction', (req, res, next) => {
                             conn.query(sqlinsertdepotinhalt).then(rows => { 
                               console.log('Es wurde der Depotinhalt aktualisiert')
                               res.status(200).json({ message: 'Der Kauf war erfolgreich'});
+                              conn.end();
                             })
                             
                           } else {
@@ -100,13 +101,14 @@ app.post('/transaction', (req, res, next) => {
                             conn.query(sqlupdatedepotinhalt).then(rows =>{
                               console.log('Es wurde der Depotinhalt aktualisiert')
                               res.status(200).json({ message: 'Der Kauf war erfolgreich'});
+                              conn.end();
                             });
 
                           }
 
                         
                       }) //end depotinhaltselect
-                      conn.end();
+                      
                 })
                 .catch(err => {
                   conn.end();
@@ -161,6 +163,7 @@ app.post('/transaction', (req, res, next) => {
                         console.log(`statusCode: ${resu.status}`)
                         console.log(resu.data)
                         res.status(200).json({ message: resu.data});
+                        conn.end();
                     })
                 });
               }
@@ -178,6 +181,7 @@ app.post('/transaction', (req, res, next) => {
                         console.log(`statusCode: ${resu.status}`)
                         console.log(resu.data)
                         res.status(200).json({ message: resu.data});
+                        conn.end();
                     })
                 });
               }
@@ -186,7 +190,7 @@ app.post('/transaction', (req, res, next) => {
           
          
           })//end Depotid
-          conn.end();
+         
           })//endcon
           .catch(err => {
             conn.end();
@@ -246,19 +250,22 @@ app.post('/login', (req, res) => {
         if(rowsDepot[0].DepotID != null){
           console.log('Anfrage nach DepotID erfolgreich: ' + rowsDepot[0].DepotID);
           res.status(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID, Kontonummer: rows[0].Kontonummer})
+          conn.end();v
         }
         else{
           console.log('Fehler bei Anfrage nach DepotID.');
           res.status(200).json({message: 'The User do not have an Depot! Before logging in this is needed!', UserID: null, Password: null, DepotID: null});
+          conn.end();
         }
       });
     }
     else{
       console.log('Fehler bei Anfrage nach UserID und Passwort.');
       res.status(200).json({message:'This User could not be found in System!', UserID: null, Password: null, DepotID: null});
+      conn.end();
     }
   });
-  conn.end();
+  
 })//end mariadbgetConnection
 .catch(err => {
   conn.end();
@@ -276,13 +283,15 @@ app.post('/fetch_stocksymbols', (req, res) => {
     if(rows != null){
       console.log('Anfrage nach allen Aktien erfolgreich!');
       res.status(200).json(rows);
+      conn.end();
     }
     else{
       console.log('Fehler bei Anfrage nach allen Aktien!');
       res.status(200).json({message:'Query not succsessful. Please try again!'});
+      conn.end();
     }
   });
-  conn.end();
+ 
 }) //end get Conn
 .catch(err => {
   conn.end();
@@ -299,9 +308,10 @@ app.post('/fetch_depotinhalt', (req, res) => {
             conn.query("Select * From Depotinhalt Where DepotID='"+DepotID+"'").then(rows=>{
               console.log(rows[0]);
               res.status(200).json(rows);
+              conn.end();
               
             })
-            conn.end();
+           
           })
           .catch(err => {
             conn.end();
@@ -547,6 +557,7 @@ mariadbcon.getConnection().then(conn =>  {
                 console.log("FS für Verkauf eingerichtet")
                 conn.query(sqlinsertverkauf).then(rows => {
                   console.log("Testdaten für Verkauf eingefügt")
+                  
                 })
             })
            });
@@ -560,7 +571,7 @@ mariadbcon.getConnection().then(conn =>  {
 
 
 });
-conn.end();
+
 }) //end con
 .catch(err => {
   conn.end();
