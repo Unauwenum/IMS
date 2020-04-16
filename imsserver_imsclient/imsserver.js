@@ -250,7 +250,7 @@ app.post('/login', (req, res) => {
         if(rowsDepot[0].DepotID != null){
           console.log('Anfrage nach DepotID erfolgreich: ' + rowsDepot[0].DepotID);
           res.status(200).json({message: "Query successful!", UserID: rows[0].UserID, Password: rows[0].Password, DepotID: rowsDepot[0].DepotID, Kontonummer: rows[0].Kontonummer})
-          conn.end();v
+          conn.end();
         }
         else{
           console.log('Fehler bei Anfrage nach DepotID.');

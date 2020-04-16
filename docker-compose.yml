@@ -15,7 +15,9 @@ services:
 
     imsserver:
         build: imsserver_imsclient
+        command: node --unhandled_rejections:strict bankserver.js
         container_name: imsservercontainer
+        restart: always
         depends_on:
             - influxdb-development
             - mysql-development

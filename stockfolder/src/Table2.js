@@ -21,7 +21,10 @@ class Table2 extends Component {
          sharedata: [
              { Aktie: "-", Anzahl: "-",Gesamtwert: "-", Veränderung: "-" },
              
-          ]
+          ],
+         sharedataHeader: [
+            { Akite: "", Anzahl: "", Gesamtwert: "", Veränderung: ""}
+         ]
        }
     }
 
@@ -161,7 +164,7 @@ class Table2 extends Component {
         })
      }
      renderTableHeader() {
-        let header = Object.keys(this.state.sharedata[0])
+        let header = Object.keys(this.state.sharedataHeader[0])
         return header.map((key, index) => {
            return <th key={index}>{key.toUpperCase()}</th>
         })

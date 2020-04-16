@@ -14,7 +14,7 @@ class Headerline extends React.Component {
     constructor() {
         super();
         this.state = {
-          depotwert: "-",
+          depotwert: "0",
           username: "-"
         };
       }
@@ -69,7 +69,7 @@ class Headerline extends React.Component {
          //für jedes Object bzw symbol in tabelleninhalt wwerden wert und veränderung hinzugefügt
         //in diesem Fall werden die Werte mit der Anzahl multipliziert
        async fetchdata () {
-          console.log('getht in fetch data rein');
+          console.log('getht in fetch data Headerline rein');
           console.log(tabelleninhalt.length);
          const pointer = this;
        
@@ -93,13 +93,14 @@ class Headerline extends React.Component {
                        var helpnumber2 = res.data.wert;
                        wert = helpnumber2 - 0
                        //wert mal Anzahl ergibt den Gesamtwert
-                       console.log('anzahl:'+tabelleninhalt[i].Anzahl);
-                       console.log(wert);
+                       console.log('anzahl Header:'+tabelleninhalt[i].Anzahl);
+                       console.log('Wert header'+wert);
                        wert = wert * tabelleninhalt[i].Anzahl
                        console.log(wert);
                        
-                       console.log(tabelleninhalt[i]);
+                      
                        tabelleninhalt[i].Gesamtwert = wert
+                       console.log('Gesamtwert Header'+tabelleninhalt[i].Gesamtwert);
                        
                        var helpnumber = res.data.change
                        helpnumber = helpnumber *100;
@@ -117,10 +118,14 @@ class Headerline extends React.Component {
                  })
               }
              for (var i = 0; i < tabelleninhalt.length; i++) {
-                depotwert = tabelleninhalt[i].Gesamtwert + depotwert
+                depotwert = depotwert + tabelleninhalt[i].Gesamtwert 
+                console.log('Depotwer1t'+depotwert);
+
              }
-             depotwert = depotwert /2
-             depotwert = depotwert;
+             var helpnumber = depotwert 
+             depotwert = helpnumber
+             console.log('Depotwert: '+depotwert);
+            depotwert = depotwert +'$';
              pointer.setState({
                  depotwert: depotwert
                  })
@@ -131,7 +136,7 @@ class Headerline extends React.Component {
     
     componentDidMount(){
         this.update();
-        this.fetchdepotwert();
+        
     }
     render() {
         return(

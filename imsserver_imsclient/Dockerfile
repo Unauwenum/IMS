@@ -13,4 +13,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD [ "node", "imsserver.js" ]
+CMD [ "node","--unhandled_rejections:strict","imsserver.js" ]
