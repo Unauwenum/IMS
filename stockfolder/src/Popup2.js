@@ -6,6 +6,7 @@ import mycookie from './Cookie';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol;
+var anzahlallowed;
 var url;
 var wert;
 
@@ -52,6 +53,7 @@ class Popup2 extends React.Component {
     } 
     
     onAnzahlChange(event) {
+     
       this.setState({
         buydata: {Anzahl: parseInt(event.target.value), Aktie: symbol, Gesamtwert: wert*event.target.value}
       })
@@ -60,8 +62,11 @@ class Popup2 extends React.Component {
     console.log(mycookie);
     var Kontonummer = mycookie.kontonummer;
     const UserID = mycookie.userid;
+    anzahlallowed = this.props.anzahl.Anzahl
+    console.log('Anzahl allowed:'+anzahlallowed);
+    console.log('Anzahl State:'+this.state.buydata.Anzahl);
       //einfache Eingabeprüfung auf Integer
-      if(Number.isInteger(this.state.buydata.Anzahl)){
+      if(Number.isInteger(this.state.buydata.Anzahl) && anzahlallowed >= this.state.buydata.Anzahl){
       axios.post(`http://${SERVER}:8080/transaction`, {
               // definition of actual content that should be sned with post as JSON
               post_content: `{"UserID": "${UserID}", "Kontonummer": "${Kontonummer}", "Betrag": "${this.state.buydata.Gesamtwert}", "Transaktionsart": "Verkauf", "Aktie": "${this.state.buydata.Aktie}", "Anzahl": "${this.state.buydata.Anzahl}"}`
@@ -85,7 +90,7 @@ class Popup2 extends React.Component {
                   console.error(error)
               })
 
-      } else { alert('Bitte geben Sie einen gültigen Wert ein. Es sindnur ganze Zahlen erlaubt')
+      } else { alert('Fehler, sie dürfen nur insgesamt'+anzahlallowed+' Aktien verkaufen');
       }//endIF 
     }
     

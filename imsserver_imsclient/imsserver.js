@@ -66,6 +66,11 @@ app.post('/transaction', (req, res, next) => {
                 console.log(resul.data)
                 //wenn genug Geld -->
                 var bool = true;
+                var helpsubstring = resul.data.substring(0, 6);
+                //wenn fehler dann Fehlermeldung
+               if (helpsubstring == 'Fehler') {
+                 bool = false;
+               }
                 if(bool) {
                   mariadbcon.getConnection().then(conn=>{
                   conn.query(`SELECT DepotID FROM Depot WHERE UserID = ${post_content_json['UserID']}`).then(rows =>  {
@@ -84,6 +89,7 @@ app.post('/transaction', (req, res, next) => {
                             helpbool = true;
                           }
                           }//end for
+                          //
                           //wenn er die Aktie bereits hat --> Update Depotinhalt, insert Kauf , wenn nicht 2 Inserts
                           if(!helpbool){
                             var sqlinsertdepotinhalt = "INSERT INTO `Depotinhalt` (`DepotID`, `Symbol`, `Anzahl`) VALUES ('"+DepotID+"', '"+post_content_json['Aktie']+"', '"+post_content_json['Anzahl']+"') ";
@@ -114,6 +120,8 @@ app.post('/transaction', (req, res, next) => {
                   conn.end();
                 });
               })//end mariadb.con
+              } else {
+                res.status(200).json({message: 'Der Kauf war nicht erfolgreich, ihre Bank meldet:'+resul.data})
               }//end if 
             })
             .catch((error) => {

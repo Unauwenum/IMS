@@ -6,6 +6,7 @@ import history from './history';
 const SERVER = process.env.SERVER || "localhost";
 var time = "change";
 var symbol;
+var anzahl;
 var tabelleninhalt;
 var object;
 
@@ -18,6 +19,7 @@ class Table2 extends Component {
        this.state = { //state is by default an object
          showPopup: false, 
          verkaufaktie: "", //dieses Attribut wird beim Popupstart mitgegeben
+         verkaufanzahl: "",
          sharedata: [
              { Aktie: "-", Anzahl: "-",Gesamtwert: "-", Veränderung: "-" },
              
@@ -33,9 +35,10 @@ class Table2 extends Component {
       
   }
   //Aktie aus dem Button wird ausgelesen
-  togglePopupup(e) {
+  togglePopupup(e, e2) {
    console.log('event: '+JSON.stringify(e));
    this.setState({
+     verkaufanzahl: e2,
      verkaufaktie: e,
      showPopup: !this.state.showPopup
    });
@@ -124,11 +127,14 @@ class Table2 extends Component {
                   tabelleninhalt[i].Gesamtwert = wert
                   
                   var helpnumber = res.data.change
+                  
+                  /*
                   helpnumber = helpnumber *100;
                   veränderung = helpnumber.toFixed(2);
                   veränderung = veränderung +'%';
-                  tabelleninhalt[i].Veränderung = veränderung;
-                  
+                  */
+                 // indiesem Fall nehmen wir den change Wert und multiplizieren diesen mit dem Gesamtwert
+                  tabelleninhalt[i].Veränderung = helpnumber * wert;
                   
 
                
@@ -157,7 +163,7 @@ class Table2 extends Component {
                  <td>{Anzahl}</td>
                  <td>{Gesamtwert}</td>
                  <td>{Veränderung}</td>
-                 <td><button id = {Aktie} value = {Anzahl} onClick={this.togglePopupup.bind(this, {Aktie})} >Verkaufen</button></td>
+                 <td><button id = {Aktie} value = {Anzahl} onClick={this.togglePopupup.bind(this, {Aktie}, {Anzahl})} >Verkaufen</button></td>
                 
               </tr>
            )
@@ -182,6 +188,7 @@ class Table2 extends Component {
               {this.state.showPopup ? 
             <Popup
             aktie={this.state.verkaufaktie}
+            anzahl={this.state.verkaufanzahl}
             closePopup={this.togglePopupdown.bind(this)}
             />
             : null
