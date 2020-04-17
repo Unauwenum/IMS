@@ -8,7 +8,7 @@ let url;
 var symbol;
 
 const SERVER = process.env.SERVER || "localhost";
-var time = "Daily";
+var time = "Realtime";
 
 
 class Stock extends React.Component {
@@ -18,7 +18,7 @@ class Stock extends React.Component {
             this.state = {
                 stockChartXValues: [],
                 stockChartYValues: [],
-                time: "Realtime"
+                time: "Daily"
             }
         }
     
