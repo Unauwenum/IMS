@@ -8,7 +8,7 @@
     "start": "node imsserver.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "cors": "^2.8.5",
     "create-react-app": "^3.4.1",
     "express": "^4.16.1",
